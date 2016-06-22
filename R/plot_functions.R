@@ -11,7 +11,7 @@ require('cowplot')
 #' @export
 #'
 #' @examples
-science_theme <- function(NULL) {
+science_theme <- function() {
   science_theme <- theme(panel.grid.major = element_line(size = 0.5, color = "grey"), 
                          axis.line = element_line(size = 0.7, color = "black"),
                          text = element_text(size = 14)) 
@@ -27,7 +27,7 @@ science_theme <- function(NULL) {
 #' @export
 #'
 #' @examples
-emptyXAxis_theme  <- function(NULL) {
+emptyXAxis_theme  <- function() {
   emptyXAxis_theme <- theme(axis.ticks.x = element_blank(),
                             axis.line.x  = element_blank(),
                             axis.title.x  = element_blank(),
