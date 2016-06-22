@@ -1,0 +1,16 @@
+{
+    "contents" : "Package: Bratwurst\nType: Package\nTitle: What the package does (short line)\nVersion: 1.0\nDate: 2016-06-22\nAuthor: Sebastian Steinhauser, Daniel Huebschmann\nMaintainer: s.steinhauser@gmx.net, huebschmann.daniel@googlemail.com\nDescription: More about what it does (maybe more than one line)\nLicense: GPLv3\n",
+    "created" : 1466580415803.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1325305131",
+    "id" : "D286A4B9",
+    "lastKnownWriteTime" : 1466580888,
+    "path" : "~/software/huebschm/R/bratwurst/DESCRIPTION",
+    "project_path" : "DESCRIPTION",
+    "properties" : {
+    },
+    "source_on_save" : false,
+    "type" : "dcf"
+}
