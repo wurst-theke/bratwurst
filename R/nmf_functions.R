@@ -270,6 +270,26 @@ cosineDissMat <- function(in.matrix, in.dimension=2){
   return(round(diss.matrix, digits=14))
 }
 
+# Create distance matrix with cosine similarity with matrix operations
+#' Title
+#'
+#' @param in.matrix 
+#' @param in.dimension 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+cosineDissMat <- function(in.matrix, in.dimension=2){
+  if(in.dimension == 1) in.matrix <- t(in.matrix)
+  squaredVectorSum <- unlist(lapply(in.matrix, function(m) {sqrt(sum(m*m))}))
+  squaredVectorProduct = squaredVectorSum %*% t(squaredVectorSum)
+  in.matrix <- as.matrix(in.matrix)
+  squaredInputSum <- t(in.matrix) %*% in.matrix # sum(a*b) for any a,b in M
+  diss.matrix <- 1 - squaredInputSum / squaredVectorProduct  # CosineDistance = 1 - CosineSimilarity
+  return(diss.matrix)
+}
+
 # Compute Alexandrov Criterion --> Silhoutte Width.
 #' Title
 #'
