@@ -240,7 +240,27 @@ cosineDiss <- function(in.matrix, in.dimension=2){
     }))
   })
   diss.matrix <- do.call(rbind, cosineDist.list)  
-  return(diss.matrix)
+  return(round(diss.matrix, digits=14))
+}
+
+# Create distance matrix with cosine similarity with matrix operations
+#' Title
+#'
+#' @param in.matrix 
+#' @param in.dimension 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+cosineDissMat <- function(in.matrix, in.dimension=2){
+  if(in.dimension == 1) in.matrix <- t(in.matrix)
+  squaredVectorSum <- unlist(lapply(in.matrix, function(m) {sqrt(sum(m*m))}))
+  squaredVectorProduct <- squaredVectorSum %*% t(squaredVectorSum)
+  in.matrix <- as.matrix(in.matrix)
+  squaredInputSum <- t(in.matrix) %*% in.matrix # sum(a*b) for any a,b in M
+  diss.matrix <- 1 - squaredInputSum / squaredVectorProduct  # CosineDistance = 1 - CosineSimilarity
+  return(round(diss.matrix, digits=14))
 }
 
 # Compute Alexandrov Criterion --> Silhoutte Width.
@@ -255,7 +275,7 @@ cosineDiss <- function(in.matrix, in.dimension=2){
 computeSilhoutteWidth <- function(dec.matrix) {
   sil.vec <- lapply(dec.matrix, function(m) {
     concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
-    dist.matrix <- cosineDiss(as.matrix(concat.matrix))
+    dist.matrix <- cosineDissMat(concat.matrix)
     my.pam <- pam(dist.matrix, k = ncol(m[[1]]$W),  diss = T)
     sil.sum <- sum(my.pam$silinfo$widths[,'sil_width'])
     sil.mean <- mean(my.pam$silinfo$widths[,'sil_width'])
@@ -277,7 +297,7 @@ computeSilhoutteWidth <- function(dec.matrix) {
 computeCopheneticCoeff <- function(dec.matrix) {
   coph.coeff <-  lapply(dec.matrix, function(m) {
     concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
-    dist.matrix <- cosineDiss(as.matrix(concat.matrix))
+    dist.matrix <- cosineDissMat(concat.matrix)
     my.hclust <- hclust(as.dist(dist.matrix))
     my.cophenetic <- cophenetic(my.hclust)
     return(mean(my.cophenetic))
