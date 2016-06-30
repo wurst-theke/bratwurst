@@ -25,18 +25,22 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
 
 #' Title
 #'
-#' @param tmpMatrix.path 
+#' @param tmpMatrix.path
+#' @param k.min  
 #' @param k.max 
 #' @param outer.iter 
-#' @param inner.iter 
+#' @param inner.iter  
+#' @param conver.test.niter  
+#' @param conver.test.stop.threshold 
 #' @param out.dir 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-runNmfGpu <- function(tmpMatrix.path, k.max = 2, outer.iter = 10,
-                      inner.iter = 10^4, out.dir = NULL) {
+runNmfGpu <- function(tmpMatrix.path, k.min= 2, k.max = 2, outer.iter = 10,
+                      inner.iter = 10^4, conver.test.niter = 10, 
+                      conver.test.stop.threshold = 40, out.dir = NULL) {
   
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
@@ -47,16 +51,19 @@ runNmfGpu <- function(tmpMatrix.path, k.max = 2, outer.iter = 10,
   if(!is.null(out.dir)) dir.create(out.dir)
   
   # RUN NMF.
-  dec.matrix <- lapply(2:k.max, function(k) {
+  dec.matrix <- lapply(k.min:k.max, function(k) {
+    print(Sys.time())
     cat("Factorization rank: ", k, "\n")
     k.matrix <- lapply(1:outer.iter, function(i) {
       if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
       frob.error <- 1
-      while(frob.error == 1 & !is.na(frob.error)){
+      while(frob.error == 1 | is.na(frob.error)){
         # VERSION 1.0        
         # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
         # nmf.stdout <- system(nmf.cmd, intern = T)
-        nmf.cmd <- sprintf('%s -k %s -i %s', tmpMatrix.path, k, inner.iter)
+        nmf.cmd <- sprintf('%s -k %i -i %i -j %i -t %i', tmpMatrix.path, k,
+                           inner.iter, conver.test.niter,
+                           conver.test.stop.threshold)
         nmf.stdout <- system2('NMF_GPU',args = nmf.cmd, stdout = T, stderr = NULL)
         frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
         frob.error <- as.numeric(sub(".*: ", "", frob.error))      
@@ -78,7 +85,7 @@ runNmfGpu <- function(tmpMatrix.path, k.max = 2, outer.iter = 10,
     names(k.matrix) <- 1:outer.iter
     return(k.matrix)
   })
-  names(dec.matrix) <- 2:k.max
+  names(dec.matrix) <- k.min:k.max
   return(dec.matrix)
 }
 
