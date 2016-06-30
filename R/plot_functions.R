@@ -80,7 +80,7 @@ plotRankedFrobErrors <- function(frob.errorMatrix) {
   gg.rankedFrobError <- gg.rankedFrobError + geom_line(col = 'black', size = 0.75)
   gg.rankedFrobError <- gg.rankedFrobError + facet_wrap(~L1, scales = 'free')
   gg.rankedFrobError <- gg.rankedFrobError + xlab('Error rank') + ylab('Frobenius error')
-  gg.rankedFrobError <- gg.rankedFrobError + theme_bw() + science_theme 
+  gg.rankedFrobError <- gg.rankedFrobError + theme_bw() + science_theme()
   gg.rankedFrobError <- gg.rankedFrobError + theme(strip.background = element_rect(fill = 'white'))
   return(gg.rankedFrobError)
 }
@@ -107,17 +107,17 @@ plotFrobError <- function(frob.errorMatrix, keep.x = F) {
                                                           aes(x=k, y=mean),
                                                           col = 'red')
   gg.frobErrorScatter <- gg.frobErrorScatter + ylab('Frobenius Error') 
-  gg.frobErrorScatter <- gg.frobErrorScatter + theme_bw() + science_theme 
-  gg.frobErrorScatter <- gg.frobErrorScatter + emptyXAxis_theme
+  gg.frobErrorScatter <- gg.frobErrorScatter + theme_bw() + science_theme() 
+  gg.frobErrorScatter <- gg.frobErrorScatter + emptyXAxis_theme()
   
   # coef of variation = sd/mean
   gg.frobErrorCv <- ggplot() + geom_point(data = frobError.data, 
                                           aes(x=k, y=cv), col = 'darkgreen')
   gg.frobErrorCv <- gg.frobErrorCv + xlab('Factorization rank') 
   gg.frobErrorCv <- gg.frobErrorCv + ylab('Coef. of variation')
-  gg.frobErrorCv <- gg.frobErrorCv + theme_bw() + science_theme
+  gg.frobErrorCv <- gg.frobErrorCv + theme_bw() + science_theme()
   if(!keep.x) {
-    gg.frobErrorCv <- gg.frobErrorCv + emptyXAxis_theme
+    gg.frobErrorCv <- gg.frobErrorCv + emptyXAxis_theme()
   }
   
   
@@ -147,17 +147,17 @@ plotSilhoutteStas <- function(sil.vec, keep.x = F) {
                                             col = 'blue')
   gg.silScatterSum <- gg.silScatterSum + xlab('Factorization rank') 
   gg.silScatterSum <- gg.silScatterSum + ylab('Sum over\nSilhouttes')
-  gg.silScatterSum <- gg.silScatterSum + theme_bw() + science_theme
-  gg.silScatterSum <- gg.silScatterSum + emptyXAxis_theme
+  gg.silScatterSum <- gg.silScatterSum + theme_bw() + science_theme()
+  gg.silScatterSum <- gg.silScatterSum + emptyXAxis_theme()
   
   # Scatterplot for mean Silhoutte values.
   gg.silScatterMean <- ggplot() + geom_point(data = Mean.df, aes(x=L1, y=value),
                                              col = 'blue')
   gg.silScatterMean <- gg.silScatterMean + xlab('Factorization rank') 
   gg.silScatterMean <- gg.silScatterMean + ylab('Mean over\nSilhouttes')
-  gg.silScatterMean <- gg.silScatterMean + theme_bw() + science_theme
+  gg.silScatterMean <- gg.silScatterMean + theme_bw() + science_theme()
   if(!keep.x) {
-    gg.silScatterMean <- gg.silScatterMean + emptyXAxis_theme 
+    gg.silScatterMean <- gg.silScatterMean + emptyXAxis_theme() 
   }
   
   gg.silScatter <- plot_grid(gg.silScatterSum, gg.silScatterMean,
@@ -181,9 +181,9 @@ plotCopheneticCoeff <- function(coph.coeff, keep.x = F){
                                               aes(x=L1, y=value), col = 'blue')
   gg.CophScatterMean <- gg.CophScatterMean + xlab('Factorization rank')
   gg.CophScatterMean <- gg.CophScatterMean + ylab('Cophenetic\ncorr. coeff.')
-  gg.CophScatterMean <- gg.CophScatterMean + theme_bw() + science_theme
+  gg.CophScatterMean <- gg.CophScatterMean + theme_bw() + science_theme()
   if(!keep.x) {
-    gg.CophScatterMean <- gg.CophScatterMean + emptyXAxis_theme 
+    gg.CophScatterMean <- gg.CophScatterMean + emptyXAxis_theme() 
   }
   return(gg.CophScatterMean)
 }
