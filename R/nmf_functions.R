@@ -306,8 +306,15 @@ computeCopheneticCoeff <- function(dec.matrix) {
     concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
     dist.matrix <- cosineDissMat(concat.matrix)
     my.hclust <- hclust(as.dist(dist.matrix))
-    my.cophenetic <- cophenetic(my.hclust)
-    return(mean(my.cophenetic))
+    dist.cophenetic <- as.matrix(cophenetic(my.hclust))
+    
+    # take distance matrices without diagonal elements
+    diag(dist.matrix) = NA
+    dist.matrix<-dist.matrix[which(!is.na(dist.matrix))]
+    diag(dist.cophenetic) = NA
+    dist.cophenetic<-dist.cophenetic[which(!is.na(dist.cophenetic))]
+    
+    return(cor(cbind(dist.cophenetic, dist.matrix))[1,2])
   })
 }
 
