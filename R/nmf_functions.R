@@ -262,9 +262,8 @@ cosineDiss <- function(in.matrix, in.dimension=2){
 #' @examples
 cosineDissMat <- function(in.matrix, in.dimension=2){
   if(in.dimension == 1) in.matrix <- t(in.matrix)
-  squaredVectorSum <- unlist(lapply(in.matrix, function(m) {sqrt(sum(m*m))}))
+  squaredVectorSum <- apply(in.matrix, 2, function(m) {sqrt(sum(m*m))})
   squaredVectorProduct <- squaredVectorSum %*% t(squaredVectorSum)
-  in.matrix <- as.matrix(in.matrix)
   squaredInputSum <- t(in.matrix) %*% in.matrix # sum(a*b) for any a,b in M
   diss.matrix <- 1 - squaredInputSum / squaredVectorProduct  # CosineDistance = 1 - CosineSimilarity
   return(round(diss.matrix, digits=14))
@@ -282,7 +281,7 @@ cosineDissMat <- function(in.matrix, in.dimension=2){
 computeSilhoutteWidth <- function(dec.matrix) {
   sil.vec <- lapply(dec.matrix, function(m) {
     concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
-    dist.matrix <- cosineDissMat(concat.matrix)
+    dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.pam <- pam(dist.matrix, k = ncol(m[[1]]$W),  diss = T)
     sil.sum <- sum(my.pam$silinfo$widths[,'sil_width'])
     sil.mean <- mean(my.pam$silinfo$widths[,'sil_width'])
@@ -304,7 +303,7 @@ computeSilhoutteWidth <- function(dec.matrix) {
 computeCopheneticCoeff <- function(dec.matrix) {
   coph.coeff <-  lapply(dec.matrix, function(m) {
     concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
-    dist.matrix <- cosineDissMat(concat.matrix)
+    dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.hclust <- hclust(as.dist(dist.matrix))
     dist.cophenetic <- as.matrix(cophenetic(my.hclust))
     
