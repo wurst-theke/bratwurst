@@ -349,7 +349,7 @@ computeAmariDistances <- function(dec.matrix){
         amariDistance(matrices[[b]], matrices[[b.hat]])
       })
     }))
-    return(sum(distances.list) / (B*(B-1)/2))
+    return(mean(distances.list[!is.na(distances.list)])) # is.na to exclude corrupted matrices
   })
   return(distance.averages)
 }
