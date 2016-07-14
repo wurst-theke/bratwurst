@@ -188,6 +188,31 @@ plotCopheneticCoeff <- function(coph.coeff, keep.x = F){
   return(gg.CophScatterMean)
 }
 
+#' Plots the average amari-type error over k
+#' See [Wu et. al, PNAS 2016] for detais
+#'
+#' @param amari.error List of average amari error at different k
+#' @param keep.x displays the x-axis
+#'
+#' @return Plot that displays the dependence of the amari error of k
+#'         Smaller errors are better.
+#' @export
+#'
+#' @examples
+plotAmariError <- function(amari.error, keep.x = F){
+  aE.melt.df <- melt(amari.error)
+  aE.melt.df$L1 <- as.numeric(as.character(aE.melt.df$L1))
+  gg.aEScatterMean <- ggplot() + geom_point(data = aE.melt.df,
+                                            aes(x=L1, y=value), col = 'blue')
+  gg.aEScatterMean <- gg.aEScatterMean + xlab('Factorization rank')
+  gg.aEScatterMean <- gg.aEScatterMean + ylab('Amari-type\nError')
+  gg.aEScatterMean <- gg.aEScatterMean + theme_bw() + science_theme()
+  if(!keep.x) {
+    gg.aEScatterMean <- gg.aEScatterMean + emptyXAxis_theme()
+  }
+  return(gg.aEScatterMean)
+}
+
 #' Title
 #'
 #' @param matrix.list 
