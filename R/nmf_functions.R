@@ -317,6 +317,43 @@ computeCopheneticCoeff <- function(dec.matrix) {
   })
 }
 
+#' Compute amari type distance between two matrices
+#'
+#' @param matrix.A,matrix.B of the same dimensionality
+#'
+#' @return The amari type distance of matrix.A & matrix.B according
+#'        to [Wu et. al, PNAS 2016]
+#' @export
+#'
+#' @examples
+amariDistance <- function(matrix.A, matrix.B) {
+  K <- dim(matrix.A)[2]
+  C <- cor(matrix.A, matrix.B)
+  return(1 - (sum(apply(C, 1, max)) + sum(apply(C,2,max))) / (2 * K))
+}
+
+#' Compute Amari Distances from [Wu et. al, PNAS 2016]
+#'
+#' @param dec.matrix list of NMF results for different k
+#'
+#' @return The average Amari-type error for each k
+#' @export
+#'
+#' @examples
+computeAmariDistances <- function(dec.matrix){
+  distance.averages <- lapply(dec.matrix, function(m) {
+    matrices <- lapply(m, function(x) as.matrix(x$W))
+    B <- length(matrices)
+    distances.list <- unlist(lapply(1:(B-1), function(b) {
+      distances <- lapply((b+1):B, function(b.hat) {
+        amariDistance(matrices[[b]], matrices[[b.hat]])
+      })
+    }))
+    return(sum(distances.list) / (B*(B-1)/2))
+  })
+  return(distance.averages)
+}
+
 #==============================================================================#
 #                         H-MATRIX ANALYSIS FUNCTIONS                          #
 #==============================================================================#
