@@ -1,7 +1,16 @@
 #==============================================================================#
 #                             W - OPTIMIZATION                                 #
 #==============================================================================#
-#Generate classifier
+#' Generate classifier
+#' 
+#' Details
+#'
+#' @param matrix_W 
+#'
+#' @return k.row, a list of lists (one list per row of the input matrix)
+#' @export
+#'
+#' @examples
 generate_classifier <- function(matrix_W){
   k.row <- apply(matrix_W, 1, function(x) {
     x.trans <- x
@@ -20,7 +29,15 @@ generate_classifier <- function(matrix_W){
   return(k.row)
 }
 
-#Filter features which are specific for a single signature
+#' Filter features which are specific for a single signature
+#'
+#' @param k.row 
+#' @param specific 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 filter_specific_features <- function(k.row, specific=TRUE){
   if(isTRUE(specific)){
     specific_list <- lapply(k.row, FUN=function(t){
@@ -51,7 +68,20 @@ filter_specific_features <- function(k.row, specific=TRUE){
   return(specific_df)
 }
 
-#Filter features which are specific for a single signature if min(size) == 1 is already set
+#' Filter features
+#' 
+#' Filter features which are specific for a single signature if min(size) == 1
+#' is already set
+#'
+#' @param k.row 
+#' @param out_int 
+#' @param specific_signatures 
+#' @param genes_df 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 filter_features <- function(k.row,
                             out_int,
                             specific_signatures,
@@ -76,7 +106,14 @@ filter_features <- function(k.row,
   return(reduced_signatures)
 }
 
-#Match and count
+#' Match and count
+#'
+#' @param LCD_result_df 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 match_and_count <- function(LCD_result_df){
   counter <- 0
   match_value <- 0
@@ -95,8 +132,17 @@ match_and_count <- function(LCD_result_df){
 return(c(counter = counter, match = match_value))
 }
 
-#Confusion matrix
-
+#' Confusion matrix
+#'
+#' @param temp_exposures_df 
+#' @param confusion_df 
+#' @param LCD_result_df 
+#' @param match_value 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 confusion_matrix_handmade <- function(temp_exposures_df, confusion_df, LCD_result_df, match_value){
   confusion_value <- 0
   for(x in 1:dim(temp_exposures_df)[2]){
@@ -113,8 +159,14 @@ confusion_matrix_handmade <- function(temp_exposures_df, confusion_df, LCD_resul
   return(confusion_vector)
 }
 
-#Calculate F1 score
-
+#' Calculate F1 score
+#'
+#' @param LCD_result_df 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_FI <- function(LCD_result_df){
   conf_data <- vector()
   loop_counter <- 0
@@ -156,6 +208,19 @@ calculate_FI <- function(LCD_result_df){
 #                   Caluclate F1 etc for a range of classfiers                 #
 #==============================================================================#
 
+#' Title
+#'
+#' @param signature_matrix 
+#' @param matrix_V 
+#' @param test_odds 
+#' @param test_dist 
+#' @param oddsVar_min 
+#' @param k.dist_max 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 calculate_for_classifier_range <- function(signature_matrix, 
                                            matrix_V, 
                                            test_odds, 
@@ -251,7 +316,17 @@ calculate_for_classifier_range <- function(signature_matrix,
 #==============================================================================#
 #                   EXTRACT GENES AND BUILD GRANGES OBJECT                     #
 #==============================================================================#
-#Extract genes specfic for each signature
+
+#' Extract genes specfic for each signature
+#'
+#' @param genes_df 
+#' @param annotation_df 
+#' @param match_by 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 extract_signature_specific_genes <- function(genes_df, annotation_df, match_by = "external_gene_name"){
   if(dim(genes_df)[1] == dim(annotation_df)[1]){
     genes_df <- genes_df
@@ -279,7 +354,14 @@ extract_signature_specific_genes <- function(genes_df, annotation_df, match_by =
   return(signature_specfic)
 }
 
-#Build GRanges object from signature list
+#' Build GRanges object from signature list
+#'
+#' @param specific_signatures_list 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 build_granges_object <- function(specific_signatures_list){
   gr_list <- lapply(specific_signatures_list, FUN=function(x){
     x$strand <- gsub("^1$", "+", x$strand)
