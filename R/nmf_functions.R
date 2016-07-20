@@ -323,6 +323,9 @@ computeCopheneticCoeff <- function(dec.matrix) {
 #'
 #' @return The amari type distance of matrix.A & matrix.B according
 #'        to [Wu et. al, PNAS 2016]
+#'
+#' @references \url{http://www.pnas.org/content/113/16/4290.long}
+#'
 #' @export
 #'
 #' @examples
@@ -337,6 +340,9 @@ amariDistance <- function(matrix.A, matrix.B) {
 #' @param dec.matrix list of NMF results for different k
 #'
 #' @return The average Amari-type error for each k
+#'
+#' @references \url{http://www.pnas.org/content/113/16/4290.long}
+#'
 #' @export
 #'
 #' @examples
