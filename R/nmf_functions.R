@@ -8,7 +8,6 @@
 #' @param sep 
 #'
 #' @return
-#' @export
 #'
 #' @examples
 writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
@@ -25,7 +24,7 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
 
 #' Title
 #'
-#' @param tmpMatrix.path
+#' @param sum.exp
 #' @param k.min  
 #' @param k.max 
 #' @param outer.iter 
@@ -35,12 +34,18 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
 #' @param out.dir 
 #'
 #' @return
+#' 
+#' @import SummarizedExperiment
+#' @importFrom data.table fread
 #' @export
 #'
 #' @examples
-runNmfGpu <- function(tmpMatrix.path, k.min= 2, k.max = 2, outer.iter = 10,
+runNmfGpu <- function(sum.exp, k.min= 2, k.max = 2, outer.iter = 10,
                       inner.iter = 10^4, conver.test.niter = 10, 
                       conver.test.stop.threshold = 40, out.dir = NULL) {
+  
+  # Write raw matrix to tmp file 
+  tmpMatrix.path <- writeTmpMatrix(assay(sum.exp, 'raw'))
   
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
@@ -86,18 +91,26 @@ runNmfGpu <- function(tmpMatrix.path, k.min= 2, k.max = 2, outer.iter = 10,
     return(k.matrix)
   })
   names(dec.matrix) <- k.min:k.max
-  return(dec.matrix)
+  
+  # # Add NMF results to summarizedExp object.
+  slot(sum.exp, 'FrobError') <- DataFrame(getFrobError(dec.matrix))
+  slot(sum.exp, 'HMatrixList') <- getHmatrixList(dec.matrix)
+  slot(sum.exp, 'WMatrixList') <- getWmatrixList(dec.matrix)
+  
+  return(sum.exp)
 }
 
 #==============================================================================#
 #                               Getter FUNCTIONS                               #
 #==============================================================================#
-#' Title
+#' Getter function for FrobError from NMF-GPU Object.
 #'
 #' @param dec.matrix 
 #'
 #' @return
-#' @export
+#' 
+#' @importFrom reshape2 melt
+#' @importFrom reshape2 dcast
 #'
 #' @examples
 getFrobError <- function(dec.matrix) {
@@ -117,6 +130,8 @@ getFrobError <- function(dec.matrix) {
 #' @param dec.matrix 
 #'
 #' @return
+#' 
+#' @importFrom reshape2 melt
 #' @export
 #'
 #' @examples
@@ -130,7 +145,7 @@ getHmatrixList <- function(dec.matrix) {
     i.minFrobError <- i.minFrobError[as.character(k.opt)]
     i.minFrobError <- unlist(i.minFrobError)[1]
     H.opt <- as.data.frame(dec.matrix[[as.character(k.opt)]][[i.minFrobError]]$H)
-    rownames(H.opt) <- paste('Faktor', 1:k.opt, sep = '') 
+    rownames(H.opt) <- paste('Factor', 1:k.opt, sep = '') 
     return(H.opt)
   })
   names(H.list) <- 2:k.max
@@ -142,6 +157,8 @@ getHmatrixList <- function(dec.matrix) {
 #' @param dec.matrix 
 #'
 #' @return
+#' 
+#' @importFrom reshape2 melt
 #' @export
 #'
 #' @examples
@@ -151,7 +168,7 @@ getWmatrixList <- function(dec.matrix) {
     i.minFrobError <- apply(frob.errorMatrix, 2, function(x) which.min(x))
     i.minFrobError <- i.minFrobError[as.character(k.opt)]
     W.opt <- as.data.frame(dec.matrix[[as.character(k.opt)]][[i.minFrobError]]$W)
-    colnames(W.opt) <- paste('Faktor', 1:k.opt, sep = '') 
+    colnames(W.opt) <- paste('Factor', 1:k.opt, sep = '') 
     return(W.opt)
   })
   names(W.list) <- 2:k.max

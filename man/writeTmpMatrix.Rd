@@ -13,6 +13,9 @@ writeTmpMatrix(matrix, tmp.path = "/tmp/nmf_tmp", sep = " ")
 
 \item{sep}{}
 }
+\value{
+
+}
 \description{
 Title
 }

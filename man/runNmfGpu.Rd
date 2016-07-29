@@ -4,7 +4,7 @@
 \alias{runNmfGpu}
 \title{Title}
 \usage{
-runNmfGpu(tmpMatrix.path, k.min = 2, k.max = 2, outer.iter = 10,
+runNmfGpu(sum.exp, k.min = 2, k.max = 2, outer.iter = 10,
   inner.iter = 10^4, conver.test.niter = 10,
   conver.test.stop.threshold = 40, out.dir = NULL)
 }
@@ -22,6 +22,9 @@ runNmfGpu(tmpMatrix.path, k.min = 2, k.max = 2, outer.iter = 10,
 \item{conver.test.stop.threshold}{}
 
 \item{out.dir}{}
+}
+\value{
+
 }
 \description{
 Title

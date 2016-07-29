@@ -5,6 +5,12 @@ Version: 1.0
 Date: 2016-06-22
 Author: Sebastian Steinhauser, Daniel Huebschmann
 Maintainer: Sebastian Steinhauser <s.steinhauser@gmx.net>, Daniel Huebschmann <huebschmann.daniel@googlemail.com>
+Import:
+    rtracklayer,
+    data.table,
+    reshape2
+Depends:
+    SummarizedExperiment
 Description: More about what it does (maybe more than one line)
 License: GPLv3
 RoxygenNote: 5.0.1

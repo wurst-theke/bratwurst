@@ -9,6 +9,9 @@ getWmatrixList(dec.matrix)
 \arguments{
 \item{dec.matrix}{}
 }
+\value{
+
+}
 \description{
 Title
 }
