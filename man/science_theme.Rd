@@ -2,11 +2,14 @@
 % Please edit documentation in R/plot_functions.R
 \name{science_theme}
 \alias{science_theme}
-\title{Title}
+\title{Science like figures - ggplot2 theme}
 \usage{
 science_theme()
 }
+\value{
+
+}
 \description{
-Title
+Science like figures - ggplot2 theme
 }
 

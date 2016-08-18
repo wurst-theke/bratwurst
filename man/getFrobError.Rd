@@ -2,7 +2,7 @@
 % Please edit documentation in R/nmf_functions.R
 \name{getFrobError}
 \alias{getFrobError}
-\title{Getter function for FrobError from NMF-GPU Object.}
+\title{Getter function for FrobError from NMF-GPU list}
 \usage{
 getFrobError(dec.matrix)
 }
@@ -13,6 +13,6 @@ getFrobError(dec.matrix)
 
 }
 \description{
-Getter function for FrobError from NMF-GPU Object.
+Getter function for FrobError from NMF-GPU list
 }
 

@@ -2,14 +2,12 @@
 % Please edit documentation in R/plot_functions.R
 \name{plotHeatmap4MatrixList}
 \alias{plotHeatmap4MatrixList}
-\title{Title}
+\title{Plot H or W-Matrix as heatmaps for a given range of K's}
 \usage{
-plotHeatmap4MatrixList(matrix.list, titles = NULL, trans = F,
+plotHeatmap4MatrixList(nmf.exp, H = T, W = F, titles = NULL, trans = F,
   cluster_columns = F, show.row = F)
 }
 \arguments{
-\item{matrix.list}{}
-
 \item{titles}{}
 
 \item{trans}{}
@@ -17,8 +15,13 @@ plotHeatmap4MatrixList(matrix.list, titles = NULL, trans = F,
 \item{cluster_columns}{}
 
 \item{show.row}{}
+
+\item{matrix.list}{}
+}
+\value{
+
 }
 \description{
-Title
+Plot H or W-Matrix as heatmaps for a given range of K's
 }
 

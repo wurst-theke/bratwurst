@@ -2,7 +2,7 @@
 % Please edit documentation in R/nmf_functions.R
 \name{cosineSim}
 \alias{cosineSim}
-\title{Title}
+\title{Cosine similarity}
 \usage{
 cosineSim(a, b)
 }
@@ -12,6 +12,6 @@ cosineSim(a, b)
 \item{b}{}
 }
 \description{
-Title
+Cosine similarity
 }
 

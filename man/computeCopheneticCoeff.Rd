@@ -2,14 +2,14 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computeCopheneticCoeff}
 \alias{computeCopheneticCoeff}
-\title{Title}
+\title{Compute Cophenetic correlation coefficient, TO BE IMPROVED}
 \usage{
-computeCopheneticCoeff(dec.matrix)
+computeCopheneticCoeff(nmf.exp)
 }
 \arguments{
-\item{dec.matrix}{}
+\item{nmf.exp}{}
 }
 \description{
-Title
+Compute Cophenetic correlation coefficient, TO BE IMPROVED
 }
 

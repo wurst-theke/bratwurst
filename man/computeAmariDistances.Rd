@@ -7,7 +7,7 @@
 computeAmariDistances(dec.matrix)
 }
 \arguments{
-\item{dec.matrix}{list of NMF results for different k}
+\item{nmf.exp}{}
 }
 \value{
 The average Amari-type error for each k

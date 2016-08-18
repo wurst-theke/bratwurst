@@ -12,7 +12,7 @@
 #'
 #' @examples
 #' 
-convertMatrix2SumExp <- function(matrix, row.anno = NULL, col.data = NULL) {
+nmfExperimentFromMatrix <- function(matrix, row.anno = NULL, col.data = NULL) {
   # Convert to matrix
   if(!is.matrix(matrix)) matrix <- as.matrix(matrix)
   # If row or/and column annotation data is missing use data given from matrix
@@ -29,7 +29,7 @@ convertMatrix2SumExp <- function(matrix, row.anno = NULL, col.data = NULL) {
   # Convert matrix to summarized experiment object.
   sum.exp <- SummarizedExperiment(assays = list('raw' = matrix), 
                                   rowData = row.anno, colData = col.data) 
-  sum.exp <- new('summarizedExpNMF', sum.exp)
+  sum.exp <- nmfExperiment(sum.exp)
   return(sum.exp)
 }
 
@@ -44,7 +44,7 @@ convertMatrix2SumExp <- function(matrix, row.anno = NULL, col.data = NULL) {
 #' @export
 #'
 #' @examples
-readMatrix2SumExp <- function(matrix.file, rowAnno.file = NULL, colData.file = NULL) {
+nmfExperimentFromFile <- function(matrix.file, rowAnno.file = NULL, colData.file = NULL) {
   # Read matrix file
   matrix <- read.table(matrix.file, header = T)
   # Read row/col annotation if given.
@@ -57,9 +57,9 @@ readMatrix2SumExp <- function(matrix.file, rowAnno.file = NULL, colData.file = N
   } else row.anno <- NULL
   if(!is.null(colData.file)) col.data <- read.table(colAnno.file) else col.data <- NULL
   # Convert to summarized experiment
-  sum.exp <- convertMatrix2SumExp(matrix = matrix, 
-                                  row.anno = row.anno,
-                                  col.data = col.data)
+  sum.exp <- nmfExperimentFromMatrix(matrix = matrix, 
+                                     row.anno = row.anno,
+                                     col.data = col.data)
   return(sum.exp)
 }
 

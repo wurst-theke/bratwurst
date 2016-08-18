@@ -2,14 +2,17 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computeSilhoutteWidth}
 \alias{computeSilhoutteWidth}
-\title{Title}
+\title{Compute Alexandrov Criterion --> Silhoutte Width}
 \usage{
-computeSilhoutteWidth(dec.matrix)
+computeSilhoutteWidth(nmf.exp)
 }
 \arguments{
-\item{dec.matrix}{}
+\item{nmf.exp}{}
+}
+\value{
+
 }
 \description{
-Title
+Compute Alexandrov Criterion --> Silhoutte Width
 }
 

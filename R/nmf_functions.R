@@ -24,7 +24,7 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
 
 #' Title
 #'
-#' @param sum.exp
+#' @param nmf.exp
 #' @param k.min  
 #' @param k.max 
 #' @param outer.iter 
@@ -40,12 +40,12 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
 #' @export
 #'
 #' @examples
-runNmfGpu <- function(sum.exp, k.min= 2, k.max = 2, outer.iter = 10,
+runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                       inner.iter = 10^4, conver.test.niter = 10, 
                       conver.test.stop.threshold = 40, out.dir = NULL) {
   
   # Write raw matrix to tmp file 
-  tmpMatrix.path <- writeTmpMatrix(assay(sum.exp, 'raw'))
+  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'))
   
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
@@ -92,18 +92,23 @@ runNmfGpu <- function(sum.exp, k.min= 2, k.max = 2, outer.iter = 10,
   })
   names(dec.matrix) <- k.min:k.max
   
-  # # Add NMF results to summarizedExp object.
-  slot(sum.exp, 'FrobError') <- DataFrame(getFrobError(dec.matrix))
-  slot(sum.exp, 'HMatrixList') <- getHmatrixList(dec.matrix)
-  slot(sum.exp, 'WMatrixList') <- getWmatrixList(dec.matrix)
+  ### Add NMF results to summarizedExp object.
+  # Frob Errors 
+  frob.errors <- DataFrame(getFrobError(dec.matrix))
+  colnames(frob.errors) <- as.character(k.min:k.max)
+  nmf.exp <- setFrobError(nmf.exp, frob.errors)
+  # H-Matrix List
+  nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
+  # W-Matrix List
+  nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
   
-  return(sum.exp)
+  return(nmf.exp)
 }
 
 #==============================================================================#
 #                               Getter FUNCTIONS                               #
 #==============================================================================#
-#' Getter function for FrobError from NMF-GPU Object.
+#' Getter function for FrobError from NMF-GPU list 
 #'
 #' @param dec.matrix 
 #'
@@ -114,93 +119,77 @@ runNmfGpu <- function(sum.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #'
 #' @examples
 getFrobError <- function(dec.matrix) {
-  frob.errorList <- lapply(dec.matrix, function(dec.m) lapply(dec.m, function(m) m$Frob.error))
+  frob.errorList <- lapply(dec.matrix, function(dec.m){
+    lapply(dec.m, function(m) m$Frob.error)
+  })
   frob.errorMatrix <- melt(frob.errorList)
   frob.errorMatrix <- dcast(frob.errorMatrix, L2 ~ L1, value.var = 'value')
   frob.errorMatrix <- frob.errorMatrix[order(as.numeric(frob.errorMatrix$L2)),]
   frob.errorMatrix <- frob.errorMatrix[,-1]
   frob.errorMatrix <- frob.errorMatrix[,order(as.numeric(colnames(frob.errorMatrix)))]
-  #colnames(frob.errorMatrix) <- 2:(ncol(frob.errorMatrix)+1)
   frob.errorMatrix[frob.errorMatrix == 1] <- NA
   return(frob.errorMatrix)
 }
 
-#' Title
+#' Getter function for H-Matrix list from NMF-GPU list 
 #'
 #' @param dec.matrix 
 #'
 #' @return
-#' 
-#' @importFrom reshape2 melt
-#' @export
 #'
 #' @examples
-getHmatrixList <- function(dec.matrix) {
-  frob.errorMatrix <- getFrobError(dec.matrix)
-  frob.errorMatrix[is.na(frob.errorMatrix)] <- NA
-  k.max <- ncol(frob.errorMatrix) + 1
-  ## Choose optimal factorization rank by hand from plots.
-  H.list <- lapply(2:k.max, function(k.opt) {
-    i.minFrobError <- apply(frob.errorMatrix, 2, function(x) which(x == min(x, na.rm = TRUE))) 
-    i.minFrobError <- i.minFrobError[as.character(k.opt)]
-    i.minFrobError <- unlist(i.minFrobError)[1]
-    H.opt <- as.data.frame(dec.matrix[[as.character(k.opt)]][[i.minFrobError]]$H)
-    rownames(H.opt) <- paste('Factor', 1:k.opt, sep = '') 
-    return(H.opt)
+getHMatrixList <- function(dec.matrix) {
+  # Extract all entries for H and return.
+  H.list <- lapply(dec.matrix, function(k.matrix) {
+    H <- lapply(k.matrix, function(m) as.matrix(m$H))
+    return(H)
   })
-  names(H.list) <- 2:k.max
   return(H.list)
 }
 
-#' Title
+#' Getter function for W-Matrix list from NMF-GPU list
 #'
 #' @param dec.matrix 
 #'
 #' @return
-#' 
-#' @importFrom reshape2 melt
-#' @export
 #'
 #' @examples
-getWmatrixList <- function(dec.matrix) {
-  frob.errorMatrix <- getFrobError(dec.matrix)
-  W.list <- lapply(2:k.max, function(k.opt) {
-    i.minFrobError <- apply(frob.errorMatrix, 2, function(x) which.min(x))
-    i.minFrobError <- i.minFrobError[as.character(k.opt)]
-    W.opt <- as.data.frame(dec.matrix[[as.character(k.opt)]][[i.minFrobError]]$W)
-    colnames(W.opt) <- paste('Factor', 1:k.opt, sep = '') 
-    return(W.opt)
+getWMatrixList <- function(dec.matrix) {
+  # Extract all entries for W and return.
+  W.list <- lapply(dec.matrix, function(k.matrix) {
+    W <- lapply(k.matrix, function(m) as.matrix(m$W))
+    return(W)
   })
-  names(W.list) <- 2:k.max
   return(W.list)
 }
 
 #==============================================================================#
 #             Criteria for optimal factorization rank - FUNCTIONS              #
 #==============================================================================#
-#' Title
+#' Compute basic statistics for Frobenius Errors
 #'
-#' @param frob.errorMatrix 
+#' @param nmf.exp
 #'
 #' @return
 #' @export
 #'
 #' @examples
-computeFrobErrorStats <- function(frob.errorMatrix) {
+computeFrobErrorStats <- function(nmf.exp) {
+  frob.errorMatrix <- as.matrix(FrobError(nmf.exp))
   min.frobError <- apply(frob.errorMatrix, 2, function(x) min(x, na.rm = T))
   sd.frobError <- apply(frob.errorMatrix, 2, function(x) sd(x, na.rm = T))
   mean.frobError <- colMeans(frob.errorMatrix, na.rm = T)
   cv.frobError <- sd.frobError/mean.frobError
-  frobError.data <- data.frame('k' = as.numeric(names(min.frobError)),
-                               'min' = min.frobError, 
-                               'mean' = mean.frobError,
-                               'sd' = sd.frobError,
-                               'cv' = cv.frobError)
-  return(frobError.data)
+  frobError.data <- DataFrame('k' = as.numeric(names(min.frobError)),
+                              'min' = min.frobError, 
+                              'mean' = mean.frobError,
+                              'sd' = sd.frobError,
+                              'cv' = cv.frobError)
+  nmf.exp <- setOptKStats(nmf.exp, frobError.data)
+  return(nmf.exp)
 }
 
-# Compute p-value with t-test for different factorisation ranks.
-#' Title
+#' Compute p-value with t-test for running K
 #'
 #' @param frobError.matrix 
 #'
@@ -218,8 +207,7 @@ computePValue4FrobError <- function(frobError.matrix) {
   return(-log10(unlist(p)))
 }
 
-# Cosine similarity
-#' Title
+#' Cosine similarity
 #'
 #' @param a 
 #' @param b 
@@ -232,8 +220,7 @@ cosineSim <- function(a,b){
   return(sum(a*b) / ( sqrt(sum(a * a)) * sqrt(sum(b * b)) )) 
 }
 
-# Cosine distance
-#' Title
+#' Cosine distance
 #'
 #' @param a 
 #' @param b 
@@ -246,8 +233,7 @@ cosineDist <- function(a,b){
   return(1 - cosineSim(a,b)) 
 }
 
-# Create distance matrix with cosine similarity
-#' Title
+#' Create distance matrix with cosine similarity
 #'
 #' @param in.matrix 
 #' @param in.dimension 
@@ -267,8 +253,7 @@ cosineDiss <- function(in.matrix, in.dimension=2){
   return(round(diss.matrix, digits=14))
 }
 
-# Create distance matrix with cosine similarity with matrix operations
-#' Title
+#' Create distance matrix with cosine similarity with matrix operations
 #'
 #' @param in.matrix 
 #' @param in.dimension 
@@ -286,40 +271,42 @@ cosineDissMat <- function(in.matrix, in.dimension=2){
   return(round(diss.matrix, digits=14))
 }
 
-# Compute Alexandrov Criterion --> Silhoutte Width.
-#' Title
+#' Compute Alexandrov Criterion --> Silhoutte Width
 #'
-#' @param dec.matrix 
+#' @param nmf.exp
 #'
 #' @return
+#' 
+#' @importFrom cluster pam
 #' @export
 #'
 #' @examples
-computeSilhoutteWidth <- function(dec.matrix) {
-  sil.vec <- lapply(dec.matrix, function(m) {
-    concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
+computeSilhoutteWidth <- function(nmf.exp) {
+  sil.vec <- lapply(WMatrixList(nmf.exp), function(WMatrix.list) {
+    concat.matrix <- do.call(cbind, WMatrix.list)
     dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
-    my.pam <- pam(dist.matrix, k = ncol(m[[1]]$W),  diss = T)
+    my.pam <- pam(dist.matrix, k = ncol(WMatrix.list[[1]]),  diss = T)
     sil.sum <- sum(my.pam$silinfo$widths[,'sil_width'])
     sil.mean <- mean(my.pam$silinfo$widths[,'sil_width'])
-    return(list(sum = sil.sum,
-                mean = sil.mean))
+    return(DataFrame(sumSilWidth = sil.sum,
+                     meanSilWidth = sil.mean))
   })
-  return(sil.vec)  
+  sil.vec <- do.call(rbind, sil.vec)
+  nmf.exp <- setOptKStats(nmf.exp, cbind(OptKStats(nmf.exp), sil.vec))
+  return(nmf.exp)  
 }
 
-# Compute Cophenetic correlation coefficient, TO BE IMPROVED
-#' Title
+#' Compute Cophenetic correlation coefficient, TO BE IMPROVED
 #'
-#' @param dec.matrix 
+#' @param nmf.exp 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-computeCopheneticCoeff <- function(dec.matrix) {
-  coph.coeff <-  lapply(dec.matrix, function(m) {
-    concat.matrix <- do.call(cbind, lapply(m, function(x) x$W))
+computeCopheneticCoeff <- function(nmf.exp) {
+  coph.coeff <- lapply(WMatrixList(nmf.exp), function(WMatrix.list) {
+    concat.matrix <- do.call(cbind, WMatrix.list)
     dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.hclust <- hclust(as.dist(dist.matrix))
     dist.cophenetic <- as.matrix(cophenetic(my.hclust))
@@ -332,6 +319,9 @@ computeCopheneticCoeff <- function(dec.matrix) {
     
     return(cor(cbind(dist.cophenetic, dist.matrix))[1,2])
   })
+  coph.coeff <- DataFrame(copheneticCoeff = unlist(coph.coeff))
+  nmf.exp <- setOptKStats(nmf.exp, cbind(OptKStats(nmf.exp), coph.coeff))
+  return(nmf.exp)
 }
 
 #' Compute amari type distance between two matrices
@@ -354,7 +344,7 @@ amariDistance <- function(matrix.A, matrix.B) {
 
 #' Compute Amari Distances from [Wu et. al, PNAS 2016]
 #'
-#' @param dec.matrix list of NMF results for different k
+#' @param nmf.exp
 #'
 #' @return The average Amari-type error for each k
 #'
@@ -364,8 +354,7 @@ amariDistance <- function(matrix.A, matrix.B) {
 #'
 #' @examples
 computeAmariDistances <- function(dec.matrix){
-  distance.averages <- lapply(dec.matrix, function(m) {
-    matrices <- lapply(m, function(x) as.matrix(x$W))
+  distance.averages <- lapply(WMatrixList(nmf.exp), function(matrices) {
     B <- length(matrices)
     distances.list <- unlist(lapply(1:(B-1), function(b) {
       distances <- lapply((b+1):B, function(b.hat) {
@@ -374,7 +363,9 @@ computeAmariDistances <- function(dec.matrix){
     }))
     return(mean(distances.list[!is.na(distances.list)])) # is.na to exclude corrupted matrices
   })
-  return(distance.averages)
+  distance.averages <- DataFrame(meanAmariDist = unlist(distance.averages))
+  nmf.exp <- setOptKStats(nmf.exp, cbind(OptKStats(nmf.exp), distance.averages))
+  return(nmf.exp)
 }
 
 #==============================================================================#
@@ -382,93 +373,136 @@ computeAmariDistances <- function(dec.matrix){
 #==============================================================================#
 # Compute unbaised signature names by applying a row k-means
 # and classify signature according to cluster and highest cluster mean.
-#' Title
+#' Compute unsupervised signature names from colData and H-Matrix for given K
 #'
-#' @param H 
-#' @param meta.data 
+#' @param nmf.exp 
+#' @param k.opt 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-getSignatureNames <- function(H, meta.data) {
+getSignatureNames <- function(nmf.exp, k.opt) {
+  H <- HMatrix(nmf.exp, k = k.opt)
   sig.names <- lapply(1:nrow(H), function(i) {
     k.cluster <- kmeans(as.numeric(H[i,]), 2)
     n.kCluster <- which(k.cluster$centers == max(k.cluster$centers))
-    samples.kCluster <- colnames(H)[k.cluster$cluster == n.kCluster]
-    m <- meta.data[meta.data$ID%in%samples.kCluster,]
-    sig.name <- paste(sort(unique(m$Timepoint)), collapse = '/')
-    sig.name <- paste(unique(m$Stage), sig.name, sep = '_')
+    samples.kCluster <- which(k.cluster$cluster == n.kCluster)
+    meta.data <- colData(nmf.exp)[samples.kCluster,]
+    n.col <- ncol(meta.data)
+    if (n.col > 1) {
+      sigName.combs <- apply(as.data.frame(meta.data), 1, function(x){
+        paste(x[2:n.col], collapse = ' ') 
+      })
+      sigName.combs <- sort(table(sigName.combs), decreasing = T)
+      sig.name <- names(sigName.combs)[1]
+      # TODO: Might be improvable by using exposures from H-Matrix.
+      # Exposure proportion computation!?
+      if(length(sigName.combs) > 1) {
+        sig.prop <- round(sigName.combs/sum(sigName.combs), 2)
+        sig.prop <- paste(names(sig.prop), sig.prop)
+        sig.name <- paste(sig.prop, collapse = '\n')
+      }
+    } else {
+      sig.name <- sprintf('Signature %s', i)
+    }
     return(sig.name)
   })
   return(unlist(sig.names))
 }
 
+
 #==============================================================================#
 #                         W-MATRIX ANALYSIS FUNCTIONS                          #
 #==============================================================================#
-# Compute 'shannon' entropy per region. 
-# High Entropy means highly specific for one signature.
-#' Title
+#' Compute 'shannon' entropy per region. 
+#' High Entropy means highly specific for one signature.
 #'
-#' @param W 
+#' @param matrix
 #'
 #' @return
-#' @export
 #'
 #' @examples
-computeEntropy <- function(W) {
-  W.relativ <- t(apply(W, 1, function(x) x/sum(x)))
-  W.entropy <- apply(W.relativ, 1, function(x) {
+computeEntropy <- function(matrix) {
+  matrix.relativ <- t(apply(matrix, 1, function(x) x/sum(x)))
+  matrix.entropy <- apply(matrix.relativ, 1, function(x) {
     p <- x*log2(length(x)*x)
     p[is.na(p)] <- 0
     h <- sum(p)
     return(h)
   })
-  return(W.entropy)
+  return(matrix.entropy)
 }
 
-# Compute delta between each signature per row
-#' Title
+#' Computes entropy for each feature in optimal K W-matrix
 #'
-#' @param W 
+#' @param nmf.exp 
+#' @param opt.k 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-computeSigAbsDelta <- function(W) {
-  delta.regions <- lapply(1:ncol(W), function(k) {
-    delta.vec <- W[,k]-(rowSums(W[,-k]))
+computeEntropy4OptK <- function(nmf.exp, opt.k) {
+  W <- WMatrix(nmf.exp, opt.k)
+  W.entropy <- computeEntropy(W)
+  return(W.entropy)
+}
+
+#' Compute delta between each column (signature) per row
+#'
+#' @param matrix 
+#'
+#' @return
+#'
+#' @examples
+computeAbsDelta <- function(matrix) {
+  delta.regions <- lapply(1:ncol(matrix), function(k) {
+    delta.vec <- matrix[,k]-(rowSums(matrix[,-k]))
     return(delta.vec)
   })
   delta.regions <- do.call(cbind, delta.regions)
   return(delta.regions) 
 }
 
-#' Title
+#' Computes absolut delta per feature for each signature given optimal K
 #'
-#' @param W 
+#' @param nmf.exp 
+#' @param k.opt 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-computeCoefVar <- function(W) {
-  apply(W, 1, function(r) sd(r)/mean(r))
+computeAbsDelta4OptK <- function(nmf.exp, k.opt) {
+  W <- WMatrix(nmf.exp, opt.k)
+  W.absDelta <- computeAbsDelta(W)
+  return(W.absDelta)
 }
 
-# Perform Kmeans on W rows to extract all possible signature combinations.
-#' Title
+#' Compute the coeficient of variation per row in a matrix. 
 #'
-#' @param W 
+#' @param matrix 
 #'
 #' @return
+#'
+#' @examples
+computeCoefiVar <- function(matrix) {
+  apply(matrix, 1, function(r) sd(r)/mean(r))
+}
+
+#' Perform Kmeans on rows of a matrix to classify them into column (singature) combinations
+#' 
+#' @param matrix 
+#'
+#' @return
+#' 
+#' @importFrom cluster silhouette
 #' @export
 #'
 #' @examples
-performRowKmeans <- function(W) {
-  k.row <- apply(W, 1, function(x) {
+performRowKmeans <- function(matrix) {
+  k.row <- apply(matrix, 1, function(x) {
     x.trans <- sigmoidTransform(x)
     k.cluster <- kmeans(x.trans, 2)
     d <- dist(as.data.frame(x.trans))
@@ -482,16 +516,18 @@ performRowKmeans <- function(W) {
   return(k.row)
 }
 
-#' Title
+#' Compute Signature Combinations for W-matrix given optimal K
 #'
-#' @param W 
+#' @param nmf.exp 
+#' @param k.opt
 #' @param var.thres 
 #'
 #' @return
 #' @export
 #'
 #' @examples
-computeSignatureCombs <- function(W, var.thres = 0.25) {
+computeSignatureCombs <- function(nmf.exp, k.opt, var.thres = 0.25) {
+  W <- WMatrix(nmf.exp, k.opt)
   # Determine Region contributions
   k.row <- performRowKmeans(W)
   # Extract Signature combinations generated by k-means

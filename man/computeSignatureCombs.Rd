@@ -2,16 +2,16 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computeSignatureCombs}
 \alias{computeSignatureCombs}
-\title{Title}
+\title{Compute Signature Combinations for W-matrix given optimal K}
 \usage{
-computeSignatureCombs(W, var.thres = 0.25)
+computeSignatureCombs(nmf.exp, k.opt, var.thres = 0.25)
 }
 \arguments{
-\item{W}{}
+\item{nmf.exp}{}
 
 \item{var.thres}{}
 }
 \description{
-Title
+Compute Signature Combinations for W-matrix given optimal K
 }
 

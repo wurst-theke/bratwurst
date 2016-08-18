@@ -8,7 +8,9 @@ Maintainer: Sebastian Steinhauser <s.steinhauser@gmx.net>, Daniel Huebschmann <h
 Import:
     rtracklayer,
     data.table,
-    reshape2
+    reshape2,
+    ggplot2,
+    cowplot
 Depends:
     SummarizedExperiment
 Description: More about what it does (maybe more than one line)

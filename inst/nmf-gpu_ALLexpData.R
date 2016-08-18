@@ -9,6 +9,8 @@ library(Bratwurst)
 #==============================================================================#
 #                                   MAIN                                       #
 #==============================================================================#
+result.path <- '/home/thymin'
+samples <- 'AML'
 # Set datapath and find files to analyse.
 data.path  <- file.path(getwd(), 'data')
 matrix.file <- list.files(data.path, 'data.txt', full.names = T)
@@ -17,34 +19,58 @@ rowAnno.bed <- list.files(data.path, '.bed', full.names = T)
 colAnno.file <- list.files(data.path, 'sample.*anno.*txt', full.names = T)
 
 # Read files to summarizedExperiment
-sum.exp <- readMatrix2SumExp(matrix.file = matrix.file, 
-                             rowAnno.file = rowAnno.file, 
-                             colData.file = colAnno.file)
+nmf.exp <- nmfExperimentFromFile(matrix.file = matrix.file,
+                                 rowAnno.file = rowAnno.file, 
+                                 colData.file = colAnno.file)
 
 ### RUN NMF GPU
 # RUN NMF.
-k.max <- 3
+k.max <- 4
 outer.iter <- 10
 inner.iter <- 10^4
 
-sum.exp<- runNmfGpu(sum.exp = sum.exp,
+nmf.exp<- runNmfGpu(nmf.exp = nmf.exp,
                     k.max = k.max,
                     outer.iter = outer.iter,
                     inner.iter = inner.iter)
 
-Bratwurst:::HMatrixList(sum.exp)
-Bratwurst:::WMatrixList(sum.exp)
-Bratwurst:::FrobError(sum.exp)
+## Check Getter Functions.
+HMatrixList(nmf.exp, k = 2)
+WMatrixList(nmf.exp)
+FrobError(nmf.exp)
+HMatrix(nmf.exp, k = 2)
+WMatrix(nmf.exp)
 
 #==============================================================================#
 #                   Criteria for optimal factorization rank                    #
 #==============================================================================#
 # Get frob error from list of deconv. matrix and compute error statistics.
-frobError.matrix <- getFrobError(dec.matrix)
-frobError.data <- computeFrobErrorStats(frobError.matrix)
+nmf.exp <- computeFrobErrorStats(nmf.exp)
+
+# Generate Alexandrov Criterion plot
+nmf.exp <- computeSilhoutteWidth(nmf.exp)
+
+# Cophenetic correlation coefficient plot
+nmf.exp <- computeCopheneticCoeff(nmf.exp)
+
+# Compute amari type distance
+nmf.exp <- computeAmariDistances(nmf.exp)
+
+OptKStats(nmf.exp)
+
+### Generate plots to estimate optimal K
+gg.optK <- plotKStats(nmf.exp)
+
+# Save plots for optimal k estimation.
+optK.svg <- sprintf('%s_k%s_iter%s_optKPlot.%s', samples, k.max,
+                    outer.iter, c('svg', 'png'))
+sapply(1:length(optK.svg), function(i) {
+  save_plot(gg.optK, filename = file.path(result.path, optK.svg[i]), base_aspect_ratio = 1.4)
+})
 
 # Generate ranked frob errors plot & save as svg/png.
-gg.rankedFrobError <- plotRankedFrobErrors(frobError.matrix)
+gg.rankedFrobError <- plotRankedFrobErrors(nmf.exp)
+
 rankedFrobError.svg <- sprintf('%s_k%s_iter%s_rankedFrobError.%s', 
                                samples, k.max, outer.iter, c('svg', 'png'))
 sapply(1:length(rankedFrobError.svg), function(i) {
@@ -52,98 +78,20 @@ sapply(1:length(rankedFrobError.svg), function(i) {
             filename = file.path(result.path, rankedFrobError.svg[i]))
 })
 
-# Generate mean frob error and coef. of var. plot
-gg.frobError <- plotFrobError(frobError.matrix)
-
-# Generate Alexandrov Criterion plot
-sil.vec <- computeSilhoutteWidth(dec.matrix)
-gg.silhoutteStats <- plotSilhoutteStas(sil.vec)  
-
-# Cophenetic correlation coefficient plot
-coph.coeff <- computeCopheneticCoeff(dec.matrix)
-gg.copheneticCoeff <- plotCopheneticCoeff(coph.coeff, keep.x = T)
-
-# Combine all plots for estmation of optimal k
-gg.optKplot <- plot_grid(gg.frobError, 
-                         gg.silhoutteStats,
-                         gg.copheneticCoeff, align = 'V', 
-                         rel_heights = c(1, 1, 1.05), ncol = 1)
-
-# Save plots for optimal k estimation.
-optK.svg <- sprintf('%s_k%s_iter%s_optKPlot.%s', samples, k.max,
-                    outer.iter, c('svg', 'png'))
-sapply(1:length(optK.svg), function(i) {
-  save_plot(gg.optKplot, filename = file.path(result.path, optK.svg[i]))
-})
-
 #==============================================================================#
 #                        H-MATRIX ANALYSIS/VISUALIZATION                       #
 #==============================================================================#
-load('/home/thymin/NMF-GPU_toolbox/heart_nmf.RData')
 # Plot Heatmaps for H over all k
-H.list <- getHmatrixList(dec.matrix)
-H.list <- lapply(H.list, function(x) {
-  colnames(x) <- colnames(raw.matrix)
-  return(x)
-})
-
 # HMatrixHeat.svg <- sprintf('%s_k%s_iter%s_HmatrixHeatmap.svg', 
 #                            samples, k.max, outer.iter) 
 # svg(file.path(result.path, HMatrixHeat.svg), width = 15)
-# plotHeatmap4MatrixList(H.list, trans = T)
+plotHeatmap4MatrixList(H.list, trans = T)
 # dev.off()
 
-#meta.file <- '/home/steinhau/NMF-GPU_toolbox/data/mENCODE/H3K27ac_sampleSheet.txt'
-meta.file <- '/home/thymin/Projects/NMF-GPU_toolbox/data/mENCODE/H3K27ac_sampleSheet.txt'
-meta.data <- readLines(meta.file)
-meta.data <- lapply(strsplit(meta.data, '\t'), function(r) r[c(1,3,4,6)])
-meta.data <- do.call(rbind, meta.data)
-i.sort <- match(colnames(H.list[[1]]), meta.data[,1])
-meta.data <- meta.data[i.sort,]
-colnames(meta.data) <- c('ID', 'Tissue/Cell', 'Stage', 'Timepoint')
-
-#anno.file <- '/home/steinhau/NMF-GPU_toolbox/data/mENCODE/sampleAnnotation.csv'
-anno.file <- '/home/thymin/Projects//NMF-GPU_toolbox/data/mENCODE/sampleAnnotation.csv'
-anno <- read.table(anno.file, sep = '\t')
-meta.data <- merge(meta.data, anno, by.x = 'Tissue/Cell', by.y = 'V1')
-colnames(meta.data) <- c('Cell', 'ID',  'Stage', 'Timepoint', 'System', 'Type')
-
-# Define colors for annotation.
-library(RColorBrewer)
-n.time <- length(unique(meta.data$Timepoint))
-n.cell <- length(unique(meta.data$Cell))
-qual.colPals <- brewer.pal.info[brewer.pal.info$category == 'qual',]
-
-# Timepoint
-time.col <- unlist(mapply(brewer.pal, n.time, 'Dark2'))[,1]
-names(time.col) <- sort(unique(meta.data$Timepoint))
-
-# Stage
-stages <- unique(meta.data$Stage)
-stage.col <- c('darkgreen', 'darkblue', 'darkred', 'orange')[1:length(stages)]
-names(stage.col) <- stages
-
-# Cell
-cell.col <- unlist(mapply(brewer.pal, n.cell, 'Paired'))[,1]
-names(cell.col) <- sort(unique(meta.data$Cell))
-
-# Prepare heatmap annotation
 heat.anno <- HeatmapAnnotation(df = meta.data[,c(1,3,4)],
                                col = list(Cell = cell.col, 
                                           Timepoint = time.col,
                                           Stage = stage.col))
-
-getColorMap <- function(matrix.list) {
-  matrix.max <- quantile(unlist(matrix.list), 0.95)
-  matrix.min <- quantile(unlist(matrix.list), 0.05)
-  if(matrix.min > 0) {
-    col.map <- colorRamp2(c(0, matrix.max), c("white", "red"))
-  } else {
-    col.map <- colorRamp2(c(matrix.min, 0, matrix.max), c("blue", "white", "red"))
-  }
-  return(col.map)
-}
-col.map <- getColorMap(H.list)
 
 # Create ouput dir structure.
 hmatrix.resultPath <- file.path(result.path, 'H-matrix')
@@ -174,38 +122,10 @@ sapply(1:length(H.list), function(i) {
 #                        W-MATRIX ANALYSIS/VISUALIZATION                       #
 #                       FIND REGIONS ASSOCIATED TO SIGNATURES                  #
 #==============================================================================#
-# Plot Heatmaps for W over all k
-W.list <- getWmatrixList(dec.matrix)
-
 ### Find representative regions.
 # Get W for best K
-k.opt <- 5
-W <- W.list[[as.character(k.opt)]]
-H <- H.list[[as.character(k.opt)]]
-
-# Compute unbaised signature names by applying a row k-means
-# and classify signature according to cluster and highest cluster mean.
-getSignatureNames <- function(H, meta.data) {
-  sig.names <- lapply(1:nrow(H), function(i) {
-    k.cluster <- kmeans(as.numeric(H[i,]), 2)
-    n.kCluster <- which(k.cluster$centers == max(k.cluster$centers))
-    samples.kCluster <- colnames(H)[k.cluster$cluster == n.kCluster]
-    m <- meta.data[meta.data$ID%in%samples.kCluster,]
-    sig.name <- paste(sort(unique(m$Timepoint)), collapse = '/')
-    sig.name <- paste(unique(m$Stage), sig.name, sep = '_')
-    return(sig.name)
-  })
-  return(unlist(sig.names))
-}
-signature.names <- getSignatureNames(H, meta.data)
-
-# Manuell chronological re-ordering.
-i.sigOrder <- c(2:4,1,5)
-signature.names <- signature.names[i.sigOrder]
-W <- W[,i.sigOrder]
-colnames(W) <- signature.names
-H <- H[i.sigOrder,]
-rownames(H) <- signature.names
+k.opt <- 4
+signature.names <- getSignatureNames(nmf.exp, k.opt)
 
 # Compute 'Delta Signature contribution' and select regions for signature of interest.
 W.delta <- computeSigAbsDelta(W)

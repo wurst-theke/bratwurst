@@ -2,7 +2,7 @@
 % Please edit documentation in R/nmf_functions.R
 \name{cosineDissMat}
 \alias{cosineDissMat}
-\title{Title}
+\title{Create distance matrix with cosine similarity with matrix operations}
 \usage{
 cosineDissMat(in.matrix, in.dimension = 2)
 }
@@ -12,6 +12,6 @@ cosineDissMat(in.matrix, in.dimension = 2)
 \item{in.dimension}{}
 }
 \description{
-Title
+Create distance matrix with cosine similarity with matrix operations
 }
 

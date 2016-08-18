@@ -2,14 +2,17 @@
 % Please edit documentation in R/plot_functions.R
 \name{getColorMap}
 \alias{getColorMap}
-\title{Title}
+\title{Generate ColorMap for ComplexHeatmaps}
 \usage{
 getColorMap(matrix.list)
 }
 \arguments{
 \item{matrix.list}{}
 }
+\value{
+
+}
 \description{
-Title
+Generate ColorMap for ComplexHeatmaps
 }
 

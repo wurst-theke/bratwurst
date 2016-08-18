@@ -2,7 +2,7 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computePValue4FrobError}
 \alias{computePValue4FrobError}
-\title{Title}
+\title{Compute p-value with t-test for running K}
 \usage{
 computePValue4FrobError(frobError.matrix)
 }
@@ -10,6 +10,6 @@ computePValue4FrobError(frobError.matrix)
 \item{frobError.matrix}{}
 }
 \description{
-Title
+Compute p-value with t-test for running K
 }
 

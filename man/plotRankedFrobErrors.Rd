@@ -2,14 +2,17 @@
 % Please edit documentation in R/plot_functions.R
 \name{plotRankedFrobErrors}
 \alias{plotRankedFrobErrors}
-\title{Title}
+\title{Ploting function for Rank vs. Frobenius Error}
 \usage{
-plotRankedFrobErrors(frob.errorMatrix)
+plotRankedFrobErrors(nmf.exp)
 }
 \arguments{
-\item{frob.errorMatrix}{}
+\item{nmf.exp}{}
+}
+\value{
+
 }
 \description{
-Title
+Ploting function for Rank vs. Frobenius Error
 }
 
