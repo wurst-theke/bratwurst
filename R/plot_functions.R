@@ -157,6 +157,8 @@ plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL, trans =
   # Get Matrix List
   matrix.list <- HMatrix(nmf.exp)
   
+  if(trans) matrix.list <- lapply(matrix.list, t)
+  
   # Define colormap for heatmaps
   col.map <- getColorMap(matrix.list)
   
@@ -170,8 +172,8 @@ plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL, trans =
                           show_row_names = show.row,
                           clustering_distance_rows = 'pearson',
                           heatmap_legend_param = list(color_bar = 'continuous'),
-                          
-                          column_title = colData(nmf.exp))
+                          #column_title = colData(nmf.exp))
+                          column_title = titles[1])
   for (i in 2:length(matrix.list)){
     heatmap.list <- heatmap.list + Heatmap(matrix.list[[i]],
                                            col = col.map,

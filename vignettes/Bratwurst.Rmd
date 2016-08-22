@@ -1,0 +1,485 @@
+---
+title: "Bratwurst"
+author: "Sebastian Steinhauser & Daniel Huebschmann"
+date: "20.07.2016"
+vignette: >
+  %\VignetteIndexEntry{MutationDensity}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}  
+output:
+  BiocStyle::html_document:
+    toc: yes
+references:
+- author:
+  - family: Alexandrov
+    given: LB
+  - family: Nik-Zainal
+    given: S
+  - family: Wedge
+    given: DC
+  - family: Aparicio
+    given: SA
+  - family: Behjati
+    given: S
+  - family: Biankin
+    given: AV
+  - family: Bignell
+    given: GR
+  - family: Bolli
+    given: N
+  - family: Borg
+    given: A
+  - family: Borresen-Dale
+    given: AL
+  - family: Boyault
+    given: S
+  - family: Burkhardt
+    given: B
+  - family: Butler
+    given: AP
+  - family: Caldas
+    given: C
+  - family: Davies
+    given: HR
+  - family: Desmedt
+    given: C
+  - family: Eils
+    given: R
+  - family: Eyfjörd
+    given: JE
+  - family: Greaves
+    given: M
+  - family: Hosoda
+    given: F
+  - family: Hutter
+    given: B
+  - family: Ilicic
+    given: T
+  - family: Imbeaud
+    given: S
+  - family: Imielinski
+    given: M
+  - family: Jäger
+    given: N
+  - family: Jones
+    given: DT
+  - family: Jones
+    given: D
+  - family: Knappskog
+    given: S
+  - family: Kool
+    given: M
+  - family: Lakhani
+    given: SR
+  - family: Lopez-Otin
+    given: C
+  - family: Martin
+    given: S
+  - family: Munshi
+    given: NC
+  - family: Nakamura
+    given: H
+  - family: Northcott
+    given: PA
+  - family: Pajic
+    given: M
+  - family: Papaemmanuil
+    given: E
+  - family: Paradiso
+    given: A
+  - family: Pearson
+    given: JV
+  - family: Puente
+    given: XS
+  - family: Raine
+    given: K
+  - family: Ramakrishna
+    given: M
+  - family: Richardson
+    given: AL
+  - family: Richter
+    given: J
+  - family: Rosenstiel
+    given: P
+  - family: Schlesner
+    given: M
+  - family: Schumacher
+    given: TN
+  - family: Span
+    given: PN
+  - family: Teague
+    given: JW
+  - family: Tokoti
+    given: Y
+  - family: Tutt
+    given: AN
+  - family: Valdes-Mas
+    given: R
+  - family: van Buuren
+    given: MM
+  - family: van't Veer
+    given: L
+  - family: Vincent-Salomon
+    given: A
+  - family: Waddell
+    given: N
+  - family: Yates
+    given: LR
+  - family: Australian Pancreatic Cancer Initiative
+    given: 
+  - family: ICGC Breast Cancer Consortium
+    given: 
+  - family: ICGC MMML-Seq Consortium
+    given: 
+  - family: ICGC PedBrain
+    given: 
+  - family: Zucman-Rossi
+    given: J
+  - family: Futreal
+    given: PA
+  - family: McDermott
+    given: U
+  - family: Lichter
+    given: P
+  - family: Meyerson
+    given: M
+  - family: Grimmond
+    given: SM
+  - family: Siebert
+    given: R
+  - family: Campo
+    given: E
+  - family: Shibata
+    given: T
+  - family: Pfister
+    given: SM
+  - family: Campbell
+    given: PJ
+  - family: Stratton
+    given: MR
+  container-title: Nature
+  id: Alex2013
+  issued:
+    month: August
+    volume: 500
+    year: 2013
+  publisher: Nature Publishing Group
+  title: 'Signatures of Mutational Processes in Cancer'
+- author:
+  - family: Alexandrov
+    given: LB
+  id: Alex_package2012
+  issued:
+    year: 2012
+  title: 'WTSI Mutational Signature Framework'
+- author:
+  - family: Alexandrov
+    given: LB
+  - family: Nik-Zainal
+    given: S
+  - family: Wedge
+    given: DC
+  - family: Campbell
+    given: PJ
+  - family: Stratton
+    given: MR
+  container-title: Cell Reports
+  id: Alex_CellRep2013
+  issued:
+    year: 2013
+  title: > 
+    Deciphering signatures of mutational processes operative in human cancer
+- author:
+  - family: Gehring
+    given: Julian
+  - family: Fischer
+    given: Bernd
+  - family: Lawrence
+    given: Michael
+  - family: Huber
+    given: Wolfgang
+  container-title: Bioinformatics
+  id: Gehring_article2015
+  issued:
+    year: 2015
+  publisher: Oxford Journals
+  title: > 
+    SomaticSignatures: inferring mutational signatures from single-nucleotide
+    variants
+- author:
+  - family: Gu 
+    given: Z
+  container-title: R package version 1.4.4
+  id: ComplexHeatmap2015
+  issued:
+    year: 2015
+  title: 'ComplexHeatmap: Making Complex Heatmaps'
+---
+
+  
+```{r load_style, warning=FALSE, message=FALSE, results="hide"}
+library(BiocStyle)
+library(knitr)
+```
+
+# Introduction {#introduction}
+
+**NMF** (**nonnegative matrix factorization**) is a matrix decomposition 
+method. It basically solves the problem as illustrated in the following figure
+(Image taken from 
+<https://en.wikipedia.org/wiki/Non-negative_matrix_factorization>):
+
+![NMF](NMF.png)
+
+Here, $V$ is an input matrix with dimensions $n \times m$. It is decomposed
+into two matrices $W$ of dimension $n \times l$ and $H$ of dimension
+$l \times m$, which when multiplied approximate the original matrix $V$. $l$ is
+a free parameter in NMF, it is called the factorization rank. If we call the 
+columns of $W$ \emph{signatures}, then $l$ corresponds to the number of 
+signatures. The decomposition thus leads to a reduction in complexity if 
+$l < n$, i.e. if the number of signatures is smaller than the number of 
+features, as indicated in the above figure.
+
+
+# The Bratwurst package {#Bratwurst_package}
+
+# Example: leukemia data
+
+Preparations
+
+```{r, warning=FALSE, message=FALSE}
+library(Bratwurst)
+```
+
+Load the example data
+
+```{r}
+data(leukemia)
+samples <- 'leukemia'
+```
+
+This data was initially generated by the following commands:
+
+```{r, eval = FALSE}
+#result.path <- './home/thymin'
+data.path  <- file.path(getwd(), 'data')
+matrix.file <- list.files(data.path, 'data.txt', full.names = T)
+rowAnno.file <- list.files(data.path, 'micro.*anno.*txt', full.names = T)
+rowAnno.bed <- list.files(data.path, '.bed', full.names = T)
+colAnno.file <- list.files(data.path, 'sample.*anno.*txt', full.names = T)
+# Read files to summarizedExperiment
+leukemia.nmf.exp <- nmfExperimentFromFile(matrix.file = matrix.file,
+                                          rowAnno.file = rowAnno.file, 
+                                          colData.file = colAnno.file)
+save(leukemia.nmf.exp, file = file.path(data.path,"leukemia.rda"))
+```
+
+Now we are ready to start an NMF analysis.
+
+## NMF analysis
+
+### Call wrapper function
+
+The wrapper function for the NMF solvers in the Bratwurst package is 
+`runNmfGpu`. It is called as follows:
+
+```{r, warning=FALSE}
+k.max <- 4
+outer.iter <- 10
+inner.iter <- 10^4
+
+leukemia.nmf.exp<- runNmfGpu(nmf.exp = leukemia.nmf.exp,
+                             k.max = k.max,
+                             outer.iter = outer.iter,
+                             inner.iter = inner.iter,
+                             tmp.path = "/tmp/tmp_leukemia")
+```
+
+Depending on the choice of parameters (dimensions of the input matrix, number 
+of iterations), this step may take some time. Note that the algorithm updates 
+the user about the progress in the iterations.
+
+Several getter functions are available to access the data in the updated 
+`nmf.exp` object:
+
+### `HMatrixList` 
+
+Returns a list of matrices `H` for a specific factorization 
+rank `k`. There are as many entries in this list as there were iterations in
+the outer iteration. Of course the number of rows of the matrix `H` corresponds
+to the chosen factorization rank.
+
+```{r}
+tmp.object <- HMatrixList(leukemia.nmf.exp, k = 2)
+class(tmp.object)
+length(tmp.object)
+class(tmp.object[[1]])
+dim(tmp.object[[1]])
+kable(tmp.object[[1]][,c(1:5)])
+```
+
+If no value for `k` is supplied, the function returns a list of lists, one for
+every iterated factorization rank.
+
+```{r}
+tmp.object <- HMatrixList(leukemia.nmf.exp)
+class(tmp.object)
+length(tmp.object)
+class(tmp.object[[1]])
+length(tmp.object[[1]])
+```
+
+### `HMatrix` 
+
+Returns the matrix `H` for the optimal decomposition (i.e. the one 
+with the minimal residual) for a specific factorization rank `k`. As in the 
+previous paragraph, the number of rows of the matrix `H` corresponds to the 
+chosen factorization rank.
+
+```{r}
+tmp.object <- HMatrix(leukemia.nmf.exp, k = 2)
+class(tmp.object)
+dim(tmp.object)
+kable(tmp.object[,c(1:5)])
+```
+
+If no value for `k` is supplied, the function returns a list of optimal 
+matrices, one for every iterated factorization rank.
+
+```{r}
+H.list <- HMatrix(leukemia.nmf.exp)
+class(H.list)
+length(H.list)
+kable(H.list[[1]][,c(1:5)])
+```
+
+### `WMatrixList` 
+
+Returns a list of matrices `W` for a specific factorization 
+rank `k`. There are as many entries in this list as there were iterations in
+the outer iteration. Of course the number of columns of the matrix `W` 
+corresponds to the chosen factorization rank.
+
+```{r}
+tmp.object <- WMatrixList(leukemia.nmf.exp, k = 2)
+class(tmp.object)
+length(tmp.object)
+class(tmp.object[[1]])
+dim(tmp.object[[1]])
+kable(tmp.object[[1]][c(1:5),])
+```
+
+If no value for `k` is supplied, the function returns a list of lists, one for
+every iterated factorization rank.
+
+### `WMatrix`
+
+Returns the matrix `W` for the optimal decomposition (i.e. the one 
+with the minimal residual) for a specific factorization rank `k`. As in the 
+previous paragraph, the number of columns of the matrix `W` corresponds to the 
+chosen factorization rank.
+
+```{r}
+tmp.object <- WMatrix(leukemia.nmf.exp, k = 2)
+class(tmp.object)
+dim(tmp.object)
+kable(tmp.object[c(1:5),])
+```
+
+If no value for `k` is supplied, the function returns a list of optimal 
+matrices, one for every iterated factorization rank.
+
+```{r}
+W.list <- WMatrix(leukemia.nmf.exp)
+class(W.list)
+length(W.list)
+kable(W.list[[1]][c(1:5),])
+```
+
+
+### `FrobError`
+
+Returns a data frame with as many columns as there are iterated factorization 
+ranks and as many rows as there are iterations per factorization rank.
+
+```{r}
+kable(FrobError(leukemia.nmf.exp))
+```
+
+## Determine the optimal factorization rank
+
+In NMF, Several methods have been described to assess the optimal factorization
+rank. The Bratwurst packages implements some of them. They are computed by 
+applying custom functions which subsequently update the data structure of type
+`nmf.exp`.
+
+### Get Frobenius error.
+
+The most important information about the many iterated decompositions is the
+norm of the residual. In NMF this is often called the Frobenius error, as the
+Frobenius norm may be used.
+
+```{r}
+leukemia.nmf.exp <- computeFrobErrorStats(leukemia.nmf.exp)
+```
+
+### Generate Alexandrov Criterion plot
+
+In [@Alex2013] an approach is described in which a modified silhouette 
+criterion is used to estimate the stability across iteration steps for one 
+fixed factorization rank `k`.
+
+```{r}
+leukemia.nmf.exp <- computeSilhoutteWidth(leukemia.nmf.exp)
+```
+
+### Cophenetic correlation coefficient plot
+
+```{r}
+leukemia.nmf.exp <- computeCopheneticCoeff(leukemia.nmf.exp)
+```
+
+### Compute amari type distance
+
+```{r}
+leukemia.nmf.exp <- computeAmariDistances(leukemia.nmf.exp)
+```
+
+After having executed all these functions, the values of the computed measures
+can be accessed with `OptKStats`:
+
+```{r}
+kable(OptKStats(leukemia.nmf.exp))
+```
+
+These quality measures can be displayed together:
+
+### Generate plots to estimate optimal k
+
+```{r, warning = FALSE, message = FALSE}
+gg.optK <- plotKStats(leukemia.nmf.exp)
+gg.optK
+```
+
+### Generate ranked error plot.
+
+It may also be useful to inspect the Frobenius error after ranking. This may 
+give an estimation of the convergence in the parameter space of initial 
+conditions.
+
+```{r}
+gg.rankedFrobError <- plotRankedFrobErrors(leukemia.nmf.exp)
+gg.rankedFrobError
+```
+
+
+
+## Visualize the matrix H (exposures)
+
+The matrices `H` may be visualized as heatmaps
+
+```{r}
+plotHeatmap4MatrixList(leukemia.nmf.exp, trans = T)
+```
+
+# References

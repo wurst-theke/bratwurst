@@ -42,10 +42,11 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
 #' @examples
 runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                       inner.iter = 10^4, conver.test.niter = 10, 
-                      conver.test.stop.threshold = 40, out.dir = NULL) {
+                      conver.test.stop.threshold = 40, out.dir = NULL, 
+                      tmp.path = '/tmp/nmf_tmp') {
   
   # Write raw matrix to tmp file 
-  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'))
+  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path)
   
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
@@ -353,7 +354,7 @@ amariDistance <- function(matrix.A, matrix.B) {
 #' @export
 #'
 #' @examples
-computeAmariDistances <- function(dec.matrix){
+computeAmariDistances <- function(nmf.exp){
   distance.averages <- lapply(WMatrixList(nmf.exp), function(matrices) {
     B <- length(matrices)
     distances.list <- unlist(lapply(1:(B-1), function(b) {
