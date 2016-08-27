@@ -207,6 +207,66 @@ references:
     SomaticSignatures: inferring mutational signatures from single-nucleotide
     variants
 - author:
+  - family: Lee
+    given: Daniel D.
+  - family: Seung
+    given: Sebastian
+  container-title: Nature
+  id: Lee_article1999
+  issued:
+    year: 1999
+  publisher: Nature Publishing Group
+  title: > 
+    Learning the parts of objects by non-negative matrix factorization
+- author:
+  - family: Brunet
+    given: Jean-Philippe
+  - family: Tamayo
+    given: Pablo
+  - family: Golub
+    given: Todd R.
+  - family: Mesirov
+    given: Jill P.
+  container-title: PNAS
+  id: Brunet_article2003
+  issued:
+    year: 2003
+  publisher: PNAS
+  title: > 
+    Metagenes and molecular pattern discovery using matrix factorization
+- author:
+  - family: Gaujoux
+    given: Renaud
+  - family: Seoighe
+    given: Cathal
+  container-title: BMC Bioinformatics
+  id: Gaujoux_article2010
+  issued:
+    year: 2010
+  publisher: BMC
+  title: > 
+    A flexible R package for nonnegative matrix factorization
+- author:
+  - family: Mejia-Roa
+    given: Edgardo
+  - family: Tabas-Madrid
+    given: Daniel
+  - family: Setoain
+    given: Javier
+  - family: Garcia
+    given: Carlos
+  - family: Tirado
+    given: Francisco
+  - family: Pascual-Montano
+    given: Alberto
+  container-title: BMC Bioinformatics
+  id: Mejia_article2015
+  issued:
+    year: 2015
+  publisher: BMC
+  title: > 
+    NMF-mGPU: non-negative matrix factorization on multi-GPU systems
+- author:
   - family: Gu 
     given: Z
   container-title: R package version 1.4.4
@@ -226,7 +286,11 @@ library(ComplexHeatmap)
 # Introduction {#introduction}
 
 **NMF** (**nonnegative matrix factorization**) is a matrix decomposition 
-method. It basically solves the problem as illustrated in the following figure
+method. A description of the algorithm and it's implementation can be found 
+e.g. in [@Lee_article1999]. In 2003, Brunet et al. applied NMF to gene 
+expression data [@Brunet_article2003]. In 2010, `r CRANpkg("NMF")`, an R 
+package implementing several NMF solvers was published [@Gaujoux_article2010].
+NMF basically solves the problem as illustrated in the following figure
 (Image taken from 
 <https://en.wikipedia.org/wiki/Non-negative_matrix_factorization>):
 
@@ -241,8 +305,49 @@ signatures. The decomposition thus leads to a reduction in complexity if
 $l < n$, i.e. if the number of signatures is smaller than the number of 
 features, as indicated in the above figure.
 
+In 2015, Mejia-Roa et al. introduced an implementation of an NMF-solver in 
+CUDA, which lead to significant reduction of computation times by making use of
+massive parallelisation on GPUs [@Mejia_article2015]. Other implementations of
+NMF-solvers on GPUs exist.
+
+It is the pupose of the package `Bratwurst` described here to provide wrapper 
+functions in R to these NMF-solvers in CUDA. Massive parallelisation not only 
+leads to faster algorithms, but also makes the benefits of NMF accessible to 
+much bigger matrices. Furthermore, functions for preprocessing, estimation of
+the optimal factorization rank and post-hoc feature selection are provided.
 
 # The Bratwurst package {#Bratwurst_package}
+
+The main feature of the package `Bratwurst` is an S4 object called `nmf.exp`. 
+It is derived from `SummarizedExperiment`, has containers for a data matrix, 
+column annotation data and row annotation data and inherits 
+`SummarizedExperiment`'s accessor functions `colData` and `rowData`. The matrix
+to be stored in this data structure is the matrix $V$ as described above, 
+corresponding to the input matrix for the NMF-solver. `nmf.exp` furthermore has
+containers for the matrices $W$ and $H$ which are results of the decomposition.
+As NMF algorithms have to be run iteratively, an instance of the class 
+`nmf.exp` can store large lists of matrices, corresponding to the results of 
+different iteration steps. Accessor functions to all different containers are 
+provided.
+
+A crucial step in data analysis with NMF is the determination of the optimal 
+factorization rank, i.e. the number of columns of the matrix $W$ or 
+equivalently the number of rows of the matrix $H$. No consensus method for an 
+automatic evaluation of the optimal factorization rank has been found to date. 
+Instead, the decomposition is usually performed iteratively over a range of 
+possible factorization ranks and different quality measures are computed for 
+every tested factorization ranks. Many quality measures have been proposed:
+
+* The `Frobenius reconstruction error`, i.e. the Frobenius norm of the 
+residuals of the decomposition: $||W \cdot H - V||_{F}$
+* Criteria to assess the stability of the decomposition:
+
+  + The `cophenetic correlation coefficient`
+  + An `Amari type distance`
+  + `Silhouette values` over clusters of patterns extracted iteratively at the 
+  same factorization rank
+
+The package `Bratwurst` provides functions to compute all 
 
 # Example: leukemia data
 
