@@ -220,6 +220,7 @@ references:
 ```{r load_style, warning=FALSE, message=FALSE, results="hide"}
 library(BiocStyle)
 library(knitr)
+library(ComplexHeatmap)
 ```
 
 # Introduction {#introduction}
@@ -476,10 +477,32 @@ gg.rankedFrobError
 
 ## Visualize the matrix H (exposures)
 
-The matrices `H` may be visualized as heatmaps
+The matrices `H` may be visualized as heatmaps. We can define a meta
+information object and annotate meta data:
 
 ```{r}
-plotHeatmap4MatrixList(leukemia.nmf.exp, trans = T)
+entity.colVector <- c("red", "blue")
+names(entity.colVector) <- c("ALL","AML")
+subtype.colVector <- c("orange", "darkgreen", "blue")
+names(subtype.colVector) <- c("B-cell", "T-cell", "-")
+anno_col <- list(V2 = entity.colVector,
+                 V3 = subtype.colVector)
+heat.anno <- HeatmapAnnotation(df = colData(leukemia.nmf.exp)[,c(2:3)],
+                               col = anno_col)
+```
+
+And now display the matrices `H` with meta data annotation:
+
+```{r}
+sapply(1:length(HMatrix(leukemia.nmf.exp)), function(i) {
+  current_k <- as.numeric(names(HMatrix(leukemia.nmf.exp))[i])
+  h.heatmap <- Heatmap(HMatrix(leukemia.nmf.exp, k = current_k), 
+                       clustering_distance_columns = 'pearson',
+                       heatmap_legend_param = list(color_bar = "continuous"),
+                       show_column_names = F, cluster_rows = F,
+                       top_annotation = heat.anno)
+  draw(h.heatmap)
+})
 ```
 
 # References
