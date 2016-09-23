@@ -4,7 +4,7 @@
 \alias{computeAmariDistances}
 \title{Compute Amari Distances from [Wu et. al, PNAS 2016]}
 \usage{
-computeAmariDistances(dec.matrix)
+computeAmariDistances(nmf.exp)
 }
 \arguments{
 \item{nmf.exp}{}

@@ -18,7 +18,9 @@ nmfExperiment <- setClass(Class = 'nmfExperiment',
                           representation = representation(HMatrixList = 'list',
                                                           WMatrixList = 'list',
                                                           FrobError = 'DataFrame',
-                                                          OptKStats = 'DataFrame'))
+                                                          OptKStats = 'DataFrame',
+                                                          OptK = 'numeric', 
+                                                          FeatureStats = 'DataFrame'))
 
 #==============================================================================#
 #                                 Getter & Setter                              #
@@ -45,6 +47,7 @@ setGeneric('setFrobError', function(nmfExperiment, FrobError) standardGeneric('s
 #' @param nmfExperiment 
 #'
 #' @return
+#' @export
 #'
 #' @examples
 setMethod('setFrobError', 'nmfExperiment', function(nmfExperiment, FrobError) {
@@ -80,6 +83,7 @@ setGeneric('setHMatrixList', function(nmfExperiment, HMatrixList) standardGeneri
 #' @param nmfExperiment 
 #'
 #' @return
+#' @export
 #'
 #' @examples
 setMethod('setHMatrixList', 'nmfExperiment', function(nmfExperiment, HMatrixList){
@@ -115,6 +119,7 @@ setGeneric('setWMatrixList', function(nmfExperiment, WMatrixList) standardGeneri
 #' @param nmfExperiment 
 #'
 #' @return
+#' @export
 #'
 #' @examples
 setMethod('setWMatrixList', 'nmfExperiment', function(nmfExperiment, WMatrixList) {
@@ -196,9 +201,74 @@ setGeneric('setOptKStats', function(nmfExperiment, OptKStats) standardGeneric('s
 #' @param nmfExperiment 
 #'
 #' @return
+#' @export
 #'
 #' @examples
 setMethod('setOptKStats', 'nmfExperiment', function(nmfExperiment, OptKStats) {
   nmfExperiment@OptKStats <- OptKStats 
+  return(nmfExperiment)
+})
+
+#### Optimal K 
+# Getter
+setGeneric('OptK', function(x, ...) standardGeneric('OptK'))
+
+#' Optimal K 
+#'
+#' @param nmfExperiment 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod('OptK', 'nmfExperiment', function(x, ...) x@OptK)
+
+# Setter
+setGeneric('setOptK', function(nmfExperiment, OptK) standardGeneric('setOptK'))
+
+#' Optimal K setter
+#'
+#' @param nmfExperiment 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod('setOptK', 'nmfExperiment', function(nmfExperiment, OptK) {
+  nmfExperiment@OptK<- OptK
+  return(nmfExperiment)
+})
+
+#### Feature Statistics
+# Getter
+setGeneric('FeatureStats', function(x, ...) standardGeneric('FeatureStats'))
+
+#' Feature Statistics getter
+#'
+#' @param nmfExperiment 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod('FeatureStats', 'nmfExperiment', function(x, ...) x@FeatureStats)
+
+# Setter
+setGeneric('setFeatureStats', function(nmfExperiment, FeatureStats) standardGeneric('setFeatureStats'))
+
+#' Feature Statistics setter
+#'
+#' @param nmfExperiment 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod('setFeatureStats', 'nmfExperiment', function(nmfExperiment, FeatureStats) {
+  if(nrow(nmfExperiment@FeatureStats) == 0) {
+    nmfExperiment@FeatureStats <- FeatureStats
+  } else {
+    nmfExperiment@FeatureStats <- cbind(nmfExperiment@FeatureStats, FeatureStats)
+  }
   return(nmfExperiment)
 })

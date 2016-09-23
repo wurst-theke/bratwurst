@@ -141,3 +141,16 @@ igvCoord2Grange <- function(coords) {
   gr <- GRanges(chrs, IRanges(start, end))
   return(gr)
 }
+
+#' Function to order binary data matrix
+#'
+#' @param matrix 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+orderBinary <- function(matrix) {
+  col.sum <- apply(matrix, 2, sum)
+  unlist(sapply(unique(col.sum), function(s) which(col.sum == s)))
+}

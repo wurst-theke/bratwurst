@@ -4,12 +4,10 @@
 \alias{computeAbsDelta4OptK}
 \title{Computes absolut delta per feature for each signature given optimal K}
 \usage{
-computeAbsDelta4OptK(nmf.exp, k.opt)
+computeAbsDelta4OptK(nmf.exp)
 }
 \arguments{
 \item{nmf.exp}{}
-
-\item{k.opt}{}
 }
 \description{
 Computes absolut delta per feature for each signature given optimal K

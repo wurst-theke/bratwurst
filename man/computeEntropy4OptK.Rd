@@ -4,12 +4,10 @@
 \alias{computeEntropy4OptK}
 \title{Computes entropy for each feature in optimal K W-matrix}
 \usage{
-computeEntropy4OptK(nmf.exp, opt.k)
+computeEntropy4OptK(nmf.exp)
 }
 \arguments{
 \item{nmf.exp}{}
-
-\item{opt.k}{}
 }
 \description{
 Computes entropy for each feature in optimal K W-matrix

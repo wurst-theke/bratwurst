@@ -10,9 +10,6 @@
 \arguments{
 \item{nmfExperiment}{}
 }
-\value{
-
-}
 \description{
 W-Matrix setter
 }

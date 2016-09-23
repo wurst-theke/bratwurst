@@ -10,9 +10,6 @@
 \arguments{
 \item{nmfExperiment}{}
 }
-\value{
-
-}
 \description{
 Frobenius Error setter
 }

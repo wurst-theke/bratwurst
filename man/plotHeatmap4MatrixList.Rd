@@ -2,7 +2,8 @@
 % Please edit documentation in R/plot_functions.R
 \name{plotHeatmap4MatrixList}
 \alias{plotHeatmap4MatrixList}
-\title{Plot H or W-Matrix as heatmaps for a given range of K's}
+\title{OLD VERSION MIGHT BE REMOVABLE
+Plot H or W-Matrix as heatmaps for a given range of K's}
 \usage{
 plotHeatmap4MatrixList(nmf.exp, H = T, W = F, titles = NULL, trans = F,
   cluster_columns = F, show.row = F)
@@ -22,6 +23,7 @@ plotHeatmap4MatrixList(nmf.exp, H = T, W = F, titles = NULL, trans = F,
 
 }
 \description{
+OLD VERSION MIGHT BE REMOVABLE
 Plot H or W-Matrix as heatmaps for a given range of K's
 }
 

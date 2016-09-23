@@ -10,9 +10,6 @@
 \arguments{
 \item{nmfExperiment}{}
 }
-\value{
-
-}
 \description{
 Optimal K Statistics setter
 }

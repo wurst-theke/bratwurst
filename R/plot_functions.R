@@ -110,34 +110,81 @@ getColorMap <- function(matrix.list) {
   return(col.map)
 }
 
-plotHeatmap4KMatrix <- function(nmf.exp, k){
+#' Computes color annotation for colData from NMF-experiment class
+#'
+#' @param col.data 
+#'
+#' @return
+#' 
+#' @import RColorBrewer
+#' @export
+#'
+#' @examples
+getColorAnno <- function(col.data) {
+  # Define own palate 
+  own.cols <- c('red', 'darkblue', 'orange', 'darkgreen')
+  # Define usable qualitative colour palates from RColorBreweer
+  qual.colPals <- sort(c('Dark2' = 8, 'Paired' = 12, 'Pastel1' = 9,
+                         'Pastel2' = 8, 'Set1' = 9, 'Set2' = 8, 'Set3' = 12, 
+                         'own' = length(own.cols)))  # 'Accent' = 8,
+  # Build color annotation for complexHeatmap
+  anno.colours <- lapply(seq(2, ncol(col.data)), function(i) {
+    n.levels <- length(unique(col.data[,i]))
+    col.pal <- names(qual.colPals)[which(qual.colPals > n.levels)[i - 1]]
+    if( col.pal != 'own' ) {
+      anno.col <- brewer.pal(qual.colPals[col.pal], col.pal)
+      anno.col <- anno.col[1:n.levels]
+    } else {
+      anno.col <- own.cols[1:n.levels]
+    }
+    names(anno.col) <- unique(col.data[,i])
+    return(anno.col)
+  })
+  names(anno.colours) <- colnames(col.data)[2:ncol(col.data)]
+  return(anno.colours)
+}
+
+#' Plot H-Matrix as heatmap for a given factorization rank K
+#'
+#' @param nmf.exp 
+#' @param k 
+#'
+#' @return
+#' 
+#' @import ComplexHeatmap
+#' @export
+#'
+#' @examples
+plotHMatrix <- function(nmf.exp, k = 2){
   # Get matrix
-  if (H) m <- HMatrix(nmf.exp, k = k)
+  m <- HMatrix(nmf.exp, k = k)
   
   # Get signature names
   signature.names <- getSignatureNames(nmf.exp, k)
+  signature.names <- paste('Signature:', signature.names, sep = '\n')
   
   # Define colormap for heatmaps
   col.map <- getColorMap(m)
   
-  # Create annotations
+  # Create heatmap annotation 
   n.cols <- ncol(colData(nmf.exp))
   colnames(m) <- colData(nmf.exp)[,1]
   rownames(m) <- signature.names
-  heat.anno <- HeatmapAnnotation(colData(nmf.exp)[,2:n.cols])
+  col.anno <- getColorAnno(colData(nmf.exp))
+  heat.anno <- HeatmapAnnotation(colData(nmf.exp)[,2:n.cols], col = col.anno)
   
-  heatmap.list <- Heatmap(matrix = m, 
-                          col = col.map,
-                          cluster_rows = F,
-                          top_annotation = heat.anno,
-                          clustering_distance_rows = 'pearson',
-                          heatmap_legend_param = list(color_bar = 'continuous'),
-                          column_title = sprintf('H-Matrix for K = %s', k))
-  
-  
+  H.heatmap <- Heatmap(matrix = m, 
+                       col = col.map,
+                       cluster_rows = F,
+                       top_annotation = heat.anno,
+                       clustering_distance_rows = 'pearson',
+                       heatmap_legend_param = list(color_bar = 'continuous'),
+                       column_title = sprintf('H-Matrix for K = %s', k))
+  return(H.heatmap)
 }
 
 
+#' OLD VERSION MIGHT BE REMOVABLE
 #' Plot H or W-Matrix as heatmaps for a given range of K's
 #'
 #' @param matrix.list 
@@ -184,4 +231,73 @@ plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL, trans =
                                            column_title = titles[i])
   }
   return(heatmap.list)
+}
+
+
+#' Title
+#'
+#' @param nmf.exp 
+#' @param sig.combs 
+#' @param col 
+#'
+#' @return
+#' 
+#' @export
+#' @import reshape2
+#' @import ggplot2
+#' @import cowplot
+#'
+#' @examples
+plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = 'blue') {
+  # Get number of features per signature combination and create a barplot.
+  n.peaks <- as.data.frame(table(FeatureStats(nmf.exp)[,1]))
+  colnames(n.peaks) <- c('sigCombId', 'value')
+  
+  # Build annotation matrix and order it
+  anno.matrix <- as.data.frame(do.call(rbind, strsplit(as.character(n.peaks$sigCombId), split = '')))
+  cluster.matrix <- apply(anno.matrix, 1, as.numeric)
+  # If only signatures should be plotted, filter here.
+  if(!sig.combs) {
+    i.keep <- which(apply(cluster.matrix, 2, sum) == 1)
+    anno.matrix <- anno.matrix[i.keep,]
+    cluster.matrix <- cluster.matrix[,i.keep]
+    n.peaks <- n.peaks[i.keep,]
+  }
+  i.order <- unlist(orderBinary(cluster.matrix))
+  anno.matrix <- t(anno.matrix)[,i.order]
+  colnames(anno.matrix) <- 1:ncol(anno.matrix)
+  rownames(anno.matrix) <- signature.names
+  anno.matrix <- melt(anno.matrix)
+  
+  # Reorder number of features data.frame
+  n.peaks$sigCombId <- factor(n.peaks$sigCombId, levels = n.peaks$sigCombId[i.order])
+  
+  # Prepare heatmap annotation plot for signature feature plot 
+  gg.heat <- ggplot(anno.matrix, aes(x = Var2, y= Var1, fill = value)) 
+  gg.heat <- gg.heat + geom_tile(col = 'black', size = 0.5)
+  gg.heat <- gg.heat + scale_fill_manual(values = c('white', 'black'))
+  gg.heat <- gg.heat + ylab('Signatures') + xlab ('Signature combinations')
+  gg.heat <- gg.heat + scale_x_discrete(expand = c(10^-2, 10^-2)) 
+  gg.heat <- gg.heat + scale_y_discrete(expand = c(0,0)) + labs(x=NULL)
+  gg.heat <- gg.heat + theme_bw() + theme_cowplot() + theme(legend.position = 'none',
+                                                            axis.ticks = element_blank(),
+                                                            axis.text.x = element_blank(),
+                                                            axis.line = element_blank(),
+                                                            panel.grid = element_blank(),
+                                                            panel.border = element_blank())
+  
+  # Prepare barplot for signature feature plot 
+  gg.bar <- ggplot(n.peaks, aes(x = sigCombId, y = value)) #, fill = clusterId)) 
+  gg.bar <- gg.bar + geom_bar(colour='black', fill = col, stat='identity', 
+                              position=position_dodge())
+  gg.bar <- gg.bar + xlab('') + ylab('#Features')
+  gg.bar <- gg.bar + theme_bw() + theme_cowplot()
+  gg.bar <- gg.bar + scale_x_discrete(expand = c(10^-2,10^-2)) 
+  gg.bar <- gg.bar + labs(x=NULL)
+  gg.bar <- gg.bar + theme(axis.ticks.x = element_blank(),
+                           axis.text.x = element_blank())
+  
+  # Combine annotation heatmap and barplot
+  gg.feature <- plot_grid(gg.bar, gg.heat, nrow = 2, align = 'v')
+  return(gg.feature)
 }
