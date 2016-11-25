@@ -154,7 +154,7 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
         # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
         # nmf.stdout <- system(nmf.cmd, intern = T)
         nmf.cmd <- sprintf('%s %s -k %i -i %i -s S -wo %s -ho %s', 
-                           file.path(system.file(package="Brastwurst"), "python/nmf_mult.py"),
+                           file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
                            tmpMatrix.path, k, inner.iter, w.sparsness, h.sparsness)
         nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
         frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
