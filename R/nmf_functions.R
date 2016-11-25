@@ -106,6 +106,93 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
   return(nmf.exp)
 }
 
+#' Title
+#'
+#' @param nmf.exp
+#' @param k.min  
+#' @param k.max 
+#' @param outer.iter 
+#' @param inner.iter  
+#' @param conver.test.niter  
+#' @param conver.test.stop.threshold 
+#' @param out.dir 
+#'
+#' @return
+#' 
+#' @import SummarizedExperiment
+#' @importFrom data.table fread
+#' @export
+#'
+#' @examples
+runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
+                            inner.iter = 10^4, conver.test.niter = 10,
+                            conver.test.stop.threshold = 40, out.dir = NULL,
+                            tmp.path = '/tmp/nmf_tmp',
+                            w.sparsness = 0,
+                            h.sparsness = 0) {
+
+  # Write raw matrix to tmp file 
+  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path)
+
+  # Define pattern to finde GPU_NMF output.
+  tmp.dir <- dirname(tmpMatrix.path)
+  h.pattern <- sprintf('%s_H.txt', basename(tmpMatrix.path))
+  w.pattern <- sprintf('%s_W.txt', basename(tmpMatrix.path))
+  
+  # Check if deconv. matrix should be saved
+  if(!is.null(out.dir)) dir.create(out.dir)
+  
+  # RUN NMF.
+  dec.matrix <- lapply(k.min:k.max, function(k) {
+    print(Sys.time())
+    cat("Factorization rank: ", k, "\n")
+    k.matrix <- lapply(1:outer.iter, function(i) {
+      if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
+      frob.error <- 1
+      while(frob.error == 1 | is.na(frob.error)){
+        # VERSION 1.0        
+        # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
+        # nmf.stdout <- system(nmf.cmd, intern = T)
+        nmf.cmd <- sprintf('%s %s -k %i -i %i -s S -wo %s -ho %s', 
+                           file.path(system.file(package="Brastwurst"), "python/nmf_mult.py"),
+                           tmpMatrix.path, k, inner.iter, w.sparsness, h.sparsness)
+        nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
+        frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
+        frob.error <- as.numeric(sub(".*: ", "", frob.error))    
+        if(length(frob.error)==0) frob.error <- 1
+      }   
+      h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
+      h.matrix <- fread(h.file, header = F)
+      w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
+      w.matrix <- fread(w.file, header = F)
+      if(!is.null(out.dir)) {
+        file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.txt', k, i)))
+        file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.txt', k, i)))
+      }
+      file.remove(c(h.file, w.file))
+            return(list(H = h.matrix,
+                        W = w.matrix,
+                        Frob.error = frob.error))
+     })
+     names(k.matrix) <- 1:outer.iter
+     return(k.matrix)
+  })
+  names(dec.matrix) <- k.min:k.max
+
+  ### Add NMF results to summarizedExp object.
+  # Frob Errors 
+  frob.errors <- DataFrame(getFrobError(dec.matrix))
+  colnames(frob.errors) <- as.character(k.min:k.max)
+  nmf.exp <- setFrobError(nmf.exp, frob.errors)
+  # H-Matrix List
+  nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
+  # W-Matrix List
+  nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
+
+ return(nmf.exp)
+}
+
+
 #==============================================================================#
 #                               Getter FUNCTIONS                               #
 #==============================================================================#
