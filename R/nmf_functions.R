@@ -653,3 +653,52 @@ getSignatureCombCounts <- function(i.regions, w.diffs) {
   return(n.peaks)
 }
 
+
+#' Normalize the signatures matrix (W)
+#' 
+#' After column normalization of the matrix W, the inverse factors are 
+#' mutiplied with the rows of H in order to keep the matrix product W*H 
+#' constant.
+#'
+#' @param nmf.exp 
+#'
+#' @return A data structure of type nmfExperiment
+#' 
+#' @importFrom YAPSA normalize_df_per_dim
+#' @export
+#'
+#' @examples
+#'  NULL
+#' 
+normalizeW <- function(nmf.exp){
+  # account for WMatrixList and HMatrixList
+  all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
+    k_list <- lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
+      tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+      tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+      normFactor <- colSums(tempW)
+      newSigs <- as.matrix(normalize_df_per_dim(tempW, 2))
+      newExpo <- tempH * normFactor
+      #newV <- newSigs %*% newExpo
+      #oldV <- tempW %*% tempH
+      return(list(W = newSigs,
+                  H = newExpo))
+    })
+    names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
+    return(k_list)
+  })
+  names(all_list) <- names(WMatrixList(nmf.exp))
+  thisWMatrixList <- lapply(all_list, function(current_k_list){
+    kWMatrixList <- lapply(current_k_list, function(current_entry){
+      return(current_entry$W)
+    })
+  })
+  nmf.exp <- setWMatrixList(nmf.exp, thisWMatrixList)
+  thisHMatrixList <- lapply(all_list, function(current_k_list){
+    kHMatrixList <- lapply(current_k_list, function(current_entry){
+      return(current_entry$H)
+    })
+  })
+  nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
+  return(nmf.exp)  
+}

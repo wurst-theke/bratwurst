@@ -11,7 +11,8 @@ Import:
     reshape2,
     ggplot2,
     cowplot,
-    ComplexHeatmap
+    ComplexHeatmap,
+    YAPSA
 Depends:
     SummarizedExperiment
 Description: More about what it does (maybe more than one line)
