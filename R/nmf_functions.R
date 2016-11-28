@@ -789,3 +789,100 @@ normalizeW <- function(nmf.exp){
   nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
   return(nmf.exp)  
 }
+
+
+#' Merge two objects of type nmfExperiment
+#'
+#' @param in_nmf1 First object of type nmfExperiment
+#' @param in_nmf2 Second object of type nmfExperiment
+#' @param rerunStats 
+#'  Boolean to indicate whether statistics should be computed on the merged 
+#'  object
+#' @param verbose 
+#'
+#' @return The merged object of type nmfExperiment
+#' @export
+#'
+#' @examples
+#'  NULL
+#'  
+merge.nmf <- function(in_nmf1, 
+                      in_nmf2,
+                      rerunStats = TRUE,
+                      verbose = FALSE){
+  error_msg <- "Bratwurst:::merge.nmf::error: input type mismatch.\n"
+  ## check if the two stem from the same input
+  if(all(names(in_nmf1) == names(in_nmf2)) &
+     length(assays(in_nmf1)) == length(assays(in_nmf2))){
+    if(verbose) cat("Bratwurst:::merge.nmf::verbose:Features of the two",
+                    "input data structures match.\n")
+    assayLogicVector <- 
+      unlist(lapply(seq_along(assays(in_nmf1)), function(current_ind){
+        temp1 <- assays(in_nmf1)[[current_ind]]
+        temp2 <- assays(in_nmf2)[[current_ind]]
+        all(temp1 == temp2)
+      }))
+    if(all(assayLogicVector) & 
+       all(names(HMatrixList(in_nmf1)) == names(HMatrixList(in_nmf2))) &
+       all(names(WMatrixList(in_nmf1)) == names(WMatrixList(in_nmf2)))){
+      if(verbose) cat("Bratwurst:::merge.nmf::verbose:Assays of the two",
+                      "input data structures match.\n")
+      ## initialize
+      if(verbose) cat("Bratwurst:::merge.nmf::verbose:Initialize.\n")
+      merged.nmf.exp <- in_nmf1
+      ## merge HMatrixList
+      if(verbose) cat("Bratwurst:::merge.nmf::verbose:Concatenate",
+                      "HMatrixList.\n")
+      temp_list <-
+        lapply(names(HMatrixList(in_nmf1)), function(currentRank){
+          c(HMatrixList(in_nmf1, k = currentRank), 
+            HMatrixList(in_nmf2, k = currentRank))
+        })
+      names(temp_list) <- names(HMatrixList(in_nmf1))
+      merged.nmf.exp <- setHMatrixList(merged.nmf.exp, temp_list)  
+      ## merge WMatrixList
+      if(verbose) cat("Bratwurst:::merge.nmf::verbose:Concatenate",
+                      "WMatrixList.\n")
+      temp_list <-
+        lapply(names(WMatrixList(in_nmf1)), function(currentRank){
+          c(WMatrixList(in_nmf1, k = currentRank), 
+            WMatrixList(in_nmf2, k = currentRank))
+        })
+      names(temp_list) <- names(WMatrixList(in_nmf1))
+      merged.nmf.exp <- setWMatrixList(merged.nmf.exp, temp_list)  
+      ## merge FrobError
+      if(verbose) cat("Bratwurst:::merge.nmf::verbose:Concatenate",
+                      "FrobError.\n")
+      merged.nmf.exp@FrobError <- rbind(FrobError(in_nmf1), FrobError(in_nmf2))
+      ## recalculate OptKStats if already available
+      if(verbose) cat("Bratwurst:::merge.nmf::verbose:Recalculate error",
+                      "statistics if necessary.\n")
+      # if(sum(dim(OptKStats(in_nmf1))) + sum(dim(OptKStats(in_nmf2))) > 0){
+      if(rerunStats){
+        ## recalculate FrobErrorStats
+        if(verbose) cat("Bratwurst:::merge.nmf::verbose:Recalculate",
+                        "FrobErrorStats.\n")
+        merged.nmf.exp <- computeFrobErrorStats(merged.nmf.exp)
+        ## recalculate Alexandrov Criterion
+        if(verbose) cat("Bratwurst:::merge.nmf::verbose:Recalculate",
+                        "Alexandrov Criterion.\n")
+        merged.nmf.exp <- computeSilhoutteWidth(merged.nmf.exp)
+        # recalculate Cophenetic correlation coefficient
+        if(verbose) cat("Bratwurst:::merge.nmf::verbose:Recalculate",
+                        "Cophenetic correlation coefficient.\n")
+        merged.nmf.exp <- computeCopheneticCoeff(merged.nmf.exp)
+        # recalculate Amari type distance
+        if(verbose) cat("Bratwurst:::merge.nmf::verbose:Recalculate",
+                        "Amari type distance.\n")
+        merged.nmf.exp <- computeAmariDistances(merged.nmf.exp)
+      }
+      return(merged.nmf.exp)
+    } else {
+      cat(error_msg)
+      return(NULL)
+    }
+  } else {
+    cat(error_msg)
+    return(NULL)
+  }
+}
