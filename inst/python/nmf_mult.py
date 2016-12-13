@@ -194,34 +194,35 @@ if __name__ == "__main__":
     parser.add_argument("-s", "-S", dest="type", default=None, type=str, help="Type of NMF, S for sparse and A for affine, else normal NMF")
     parser.add_argument("-ho", "-HO", dest="sparseH", default=0, type=float, help="Sparseness parameter of H matrix for sparse and affine NMF")
     parser.add_argument("-wo", "-WO", dest="sparseW", default=0, type=float, help="Sparseness parameter of W matrix for sparse and affine NMF")
-
+    parser.add_argument("-g", "-G", dest="gpuID", default=0, type=int, help="ID of the GPU, if multiple GPUs are available")
 
 
     args = parser.parse_args()
 
     X = np.loadtxt(args.filename)
 
+    cm.cuda_set_device(args.gpuID)
     cm.cublas_init()
 
     if args.type == "S":
         print "Running sparse NMF with sparseness constraints %f for H and %f for W" % (args.sparseH, args.sparseW)
         W, H = NMFsparse(X, args.rank, args.sparseH, args.sparseH, args.iter, niter_test_conv=args.niter_test_conv, stop_threshold=args.stop_threshold)
-        #frobNorm <- np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X)
+        frobNorm = np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X)
     elif args.type == "A":
         print "Running affine NMF"
         W, H, W0 = NMFaffine(X, args.rank, args.sparseH, args.sparseH, args.iter, niter_test_conv=args.niter_test_conv, stop_threshold=args.stop_threshold)
 
         np.savetxt(args.filename + "_W0.txt", W0)
-        frobNorm <- np.linalg.norm(X-np.dot(W,H)-W0) / np.linalg.norm(X)
+        frobNorm = np.linalg.norm(X-np.dot(W,H)-W0) / np.linalg.norm(X)
     else:
         print "Running default NMF"
         W, H = NMF(X, args.rank, args.iter, niter_test_conv=args.niter_test_conv, stop_threshold=args.stop_threshold)
-        frobNorm <- np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X)
+        frobNorm = np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X)
 
     np.savetxt(args.filename + "_H.txt", H)
     np.savetxt(args.filename + "_W.txt", W)
 
-    print "Distance: " + str(np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X))
+    print "Distance: " + str(frobNorm)
     t1 = time.time()
     print "Time take by NMF-cuda: ", t1-t0
 

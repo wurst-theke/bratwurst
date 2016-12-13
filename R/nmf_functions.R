@@ -127,9 +127,8 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                             inner.iter = 10^4, conver.test.niter = 10,
                             conver.test.stop.threshold = 40, out.dir = NULL,
-                            tmp.path = '/tmp/nmf_tmp',
-                            w.sparsness = 0,
-                            h.sparsness = 0) {
+                            tmp.path = '/tmp/nmf_tmp', nmf.type = "N",
+                            w.sparsness = 0, h.sparsness = 0, gpu.id = 0) {
 
   # Write raw matrix to tmp file 
   tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path)
@@ -153,9 +152,10 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
         # VERSION 1.0        
         # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
         # nmf.stdout <- system(nmf.cmd, intern = T)
-        nmf.cmd <- sprintf('%s %s -k %i -i %i -s S -wo %s -ho %s', 
+        nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i', 
                            file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                           tmpMatrix.path, k, inner.iter, w.sparsness, h.sparsness)
+                           tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
+                           gpu.id)
         nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
         frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
         frob.error <- as.numeric(sub(".*: ", "", frob.error))    
