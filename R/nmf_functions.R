@@ -886,3 +886,53 @@ merge.nmf <- function(in_nmf1,
     return(NULL)
   }
 }
+
+#' Compute signature specific features
+#'
+#' @param nmf.exp
+#' @param rowDataId The index of the rowData(nmf.exp) data.frame that should be used for 
+#'  feature extraction. In case rowData(nmf.exp)[,1] is a GRanges or a related object like
+#'  GenomicInteractions this parameter can be ignored
+#'
+#' @return nmf.exp with filles SignatureSpecificFeatures container
+#'
+#' @references 
+#'
+#' @export
+#'
+#' @examples
+#' 
+computeSignatureSpecificFeatures <- function(nmf.exp, rowDataId = 3){ 
+  if (length(OptK(nmf.exp)) == 0){ 
+    stop("You need to first define an optimal k before being able to compute signature 
+         specific features!")
+  }else{
+    if (nrow(FeatureStats(nmf.exp)) == 0){ 
+      message("Computing feature stats...")
+      nmf.exp <- computeFeatureStats(nmf.exp)
+    }   
+    fstats <- FeatureStats(nmf.exp)
+    # identify unique cluster membership strings
+    clusterMemberships <- sapply(unique(as.character(fstats$cluster)), 
+                                 function (x) lengths(regmatches(x, gregexpr("1", x))))
+    sigSpecClusters <- sort(names(clusterMemberships[which(clusterMemberships == 1)]), 
+                            decreasing = TRUE)
+    
+    if (class(rowData(nmf.exp)[,1]) %in% c("GRanges", "GInteractions", 
+                                           "GenomicInteractions")){
+      signatureSpecificFeatures <- lapply(sigSpecClusters, function(ssc){
+        features <- rowData(nmf.exp)[,1][which(fstats$cluster == ssc)]
+        return(features)
+      })  
+    }else{
+      signatureSpecificFeatures <- lapply(sigSpecClusters, function(ssc){
+        features <- rowData(nmf.exp)[, rowDataId][which(fstats$cluster == ssc)]
+        return(features)
+      })  
+    }   
+    names(signatureSpecificFeatures) <- sigSpecClusters
+    nmf.exp@SignatureSpecificFeatures <- signatureSpecificFeatures
+    return(nmf.exp) 
+  }
+}
+
