@@ -20,7 +20,8 @@ nmfExperiment <- setClass(Class = 'nmfExperiment',
                                                           FrobError = 'DataFrame',
                                                           OptKStats = 'DataFrame',
                                                           OptK = 'numeric', 
-                                                          FeatureStats = 'DataFrame'))
+                                                          FeatureStats = 'DataFrame',
+                                                          SignatureSpecificFeatures = 'list'))
 
 #==============================================================================#
 #                                 Getter & Setter                              #
@@ -254,7 +255,8 @@ setGeneric('FeatureStats', function(x, ...) standardGeneric('FeatureStats'))
 setMethod('FeatureStats', 'nmfExperiment', function(x, ...) x@FeatureStats)
 
 # Setter
-setGeneric('setFeatureStats', function(nmfExperiment, FeatureStats) standardGeneric('setFeatureStats'))
+setGeneric('setFeatureStats', 
+           function(nmfExperiment, FeatureStats) standardGeneric('setFeatureStats'))
 
 #' Feature Statistics setter
 #'
@@ -269,6 +271,47 @@ setMethod('setFeatureStats', 'nmfExperiment', function(nmfExperiment, FeatureSta
     nmfExperiment@FeatureStats <- FeatureStats
   } else {
     nmfExperiment@FeatureStats <- cbind(nmfExperiment@FeatureStats, FeatureStats)
+  }
+  return(nmfExperiment)
+})
+
+#### Signature specfific features
+# Getter
+setGeneric('SignatureSpecificFeatures', 
+           function(x, ...) standardGeneric('SignatureSpecificFeatures'))
+
+#' Signature specfific features getter
+#'
+#' @param nmfExperiment 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod('SignatureSpecificFeatures', 
+          'nmfExperiment', function(x, ...) x@SignatureSpecificFeatures)
+
+# Setter
+setGeneric('setSignatureSpecificFeatures', 
+           function(nmfExperiment, SignatureSpecificFeatures){
+             standardGeneric('setSignatureSpecificFeatures')
+           })
+
+#' Feature Statistics setter
+#'
+#' @param nmfExperiment 
+#'
+#' @return
+#' @export
+#'
+#' @examples
+setMethod('setSignatureSpecificFeatures', 'nmfExperiment', 
+          function(nmfExperiment, SignatureSpecificFeatures) {
+  if(nrow(nmfExperiment@SignatureSpecificFeatures) == 0) {
+    nmfExperiment@SignatureSpecificFeatures<- SignatureSpecificFeatures
+  } else {
+    nmfExperiment@SignatureSpecificFeatures<- c(nmfExperiment@SignatureSpecificFeatures, 
+                                                SignatureSpecificFeatures)
   }
   return(nmfExperiment)
 })
