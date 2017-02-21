@@ -10,15 +10,21 @@
 #' @return
 #'
 #' @examples
-writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ') {
+writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ', binary=FALSE) {
   # Write matrix to tmp file.
   matrix <- round(matrix, 7)
   dir.create(tmp.path)
   # Rmv final slash from path --> will lead to an error of nmfGpu wrapper
   tmp.path <- sub('/$', '', tmp.path)
-  tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = '.txt')
-  write.table(matrix, file = tmpMatrix.path, quote = F, 
-              col.names = F, row.names = F, sep = sep) 
+  
+  if(!binary){
+    tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = '.txt')
+    write.table(matrix, file = tmpMatrix.path, quote = F, 
+                col.names = F, row.names = F, sep = sep)
+  } else {
+    tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = '.npy')
+    npySave(tmpMatrix.path, matrix)
+  }
   return(tmpMatrix.path)
 }
 
@@ -128,15 +134,20 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                             inner.iter = 10^4, conver.test.niter = 10,
                             conver.test.stop.threshold = 40, out.dir = NULL,
                             tmp.path = '/tmp/nmf_tmp', nmf.type = "N",
-                            w.sparsness = 0, h.sparsness = 0, gpu.id = 0) {
+                            w.sparsness = 0, h.sparsness = 0, gpu.id = 0,
+                            binary.file.transfer = FALSE) {
 
   # Write raw matrix to tmp file 
-  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path)
+  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path,
+                                   binary=binary.file.transfer)
+  encoding <- "txt"
+  if(binary.file.transfer)
+    encoding <- "npy"
 
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
-  h.pattern <- sprintf('%s_H.txt', basename(tmpMatrix.path))
-  w.pattern <- sprintf('%s_W.txt', basename(tmpMatrix.path))
+  h.pattern <- sprintf('%s_H.%s', basename(tmpMatrix.path), encoding)
+  w.pattern <- sprintf('%s_W.%s', basename(tmpMatrix.path), encoding)
   
   # Check if deconv. matrix should be saved
   if(!is.null(out.dir)) dir.create(out.dir)
@@ -152,22 +163,27 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
         # VERSION 1.0        
         # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
         # nmf.stdout <- system(nmf.cmd, intern = T)
-        nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i', 
+        nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
                            file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
                            tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                           gpu.id)
+                           gpu.id, encoding)
         nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
         frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
         frob.error <- as.numeric(sub(".*: ", "", frob.error))    
         if(length(frob.error)==0) frob.error <- 1
       }   
       h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
-      h.matrix <- fread(h.file, header = F)
       w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
-      w.matrix <- fread(w.file, header = F)
+      if(!binary.file.transfer){
+        h.matrix <- fread(h.file, header = F)
+        w.matrix <- fread(w.file, header = F)
+      } else {
+        h.matrix <- npyLoad(h.file)
+        w.matrix <- npyLoad(w.file)
+      }
       if(!is.null(out.dir)) {
-        file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.txt', k, i)))
-        file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.txt', k, i)))
+        file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.%s', k, i, encoding)))
+        file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.%s', k, i, encoding)))
       }
       file.remove(c(h.file, w.file))
             return(list(H = h.matrix,

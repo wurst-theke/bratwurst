@@ -354,11 +354,14 @@ if __name__ == "__main__":
     parser.add_argument("-ho", "-HO", dest="sparseH", default=0, type=float, help="Sparseness parameter of H matrix for sparse and affine NMF")
     parser.add_argument("-wo", "-WO", dest="sparseW", default=0, type=float, help="Sparseness parameter of W matrix for sparse and affine NMF")
     parser.add_argument("-g", "-G", dest="gpuID", default=0, type=int, help="ID of the GPU, if multiple GPUs are available")
-
+    parser.add_argument("-e", "-E", dest="encoding", default="txt", help="File encoding of input and output matrices")
 
     args = parser.parse_args()
 
-    X = np.loadtxt(args.filename)
+    if args.encoding == "npy":
+        X = np.load(args.filename)
+    else:
+        X = np.loadtxt(args.filename)
 
     cm.cuda_set_device(args.gpuID)
     cm.cublas_init()
@@ -385,8 +388,12 @@ if __name__ == "__main__":
         W, H = NMF(X, args.rank, args.iter, niter_test_conv=args.niter_test_conv, stop_threshold=args.stop_threshold)
         frobNorm = np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X)
 
-    np.savetxt(args.filename + "_H.txt", H)
-    np.savetxt(args.filename + "_W.txt", W)
+    if args.encoding == "npy":
+        np.save(args.filename + "_H.npy", H)
+        np.save(args.filename + "_W.npy", W)
+    else:
+        np.savetxt(args.filename + "_H.txt", H)
+        np.savetxt(args.filename + "_W.txt", W)
 
     print "Distance: " + str(frobNorm)
     t1 = time.time()
