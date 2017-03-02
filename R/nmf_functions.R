@@ -9,6 +9,8 @@
 #'
 #' @return
 #'
+#' @importFrom RcppCNPy npySave
+#'
 #' @examples
 writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ', binary=FALSE) {
   # Write matrix to tmp file.
@@ -127,6 +129,7 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #' 
 #' @import SummarizedExperiment
 #' @importFrom data.table fread
+#' @importFrom RcppCNPy npyLoad
 #' @export
 #'
 #' @examples
@@ -806,6 +809,100 @@ normalizeW <- function(nmf.exp){
   return(nmf.exp)  
 }
 
+#' Normalize the signatures matrix (H)
+#' 
+#' After row normalization of the matrix H, the inverse factors are 
+#' mutiplied with the columns of W in order to keep the matrix product W*H 
+#' constant.
+#'
+#' @param nmf.exp 
+#'
+#' @return A data structure of type nmfExperiment
+#' 
+#' @importFrom YAPSA normalize_df_per_dim
+#' @export
+#'
+#' @examples
+#'  NULL
+#' 
+normalizeH <- function(nmf.exp){
+  # account for WMatrixList and HMatrixList
+  all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
+    k_list <- lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
+      tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+      tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+      normFactor <- rowSums(tempH)
+      
+      newExpo <- as.matrix(normalize_df_per_dim(tempH, 1))
+      newSigs <- tempW * normFactor
+      return(list(W = newSigs,
+                  H = newExpo))
+    })
+    names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
+    return(k_list)
+  })
+  names(all_list) <- names(WMatrixList(nmf.exp))
+  thisWMatrixList <- lapply(all_list, function(current_k_list){
+    kWMatrixList <- lapply(current_k_list, function(current_entry){
+      return(current_entry$W)
+    })
+  })
+  nmf.exp <- setWMatrixList(nmf.exp, thisWMatrixList)
+  thisHMatrixList <- lapply(all_list, function(current_k_list){
+    kHMatrixList <- lapply(current_k_list, function(current_entry){
+      return(current_entry$H)
+    })
+  })
+  nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
+  return(nmf.exp)  
+}
+
+#' Regularize the signatures matrix (H)
+#' 
+#' After row regularization of the matrix H, the inverse factors are 
+#' mutiplied with the columns of W in order to keep the matrix product W*H 
+#' constant.
+#'
+#' @param nmf.exp 
+#'
+#' @return A data structure of type nmfExperiment
+#' 
+#' @export
+#'
+#' @examples
+#'  NULL
+#' 
+regularizeH <- function(nmf.exp){
+  # account for WMatrixList and HMatrixList
+  all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
+    k_list <- lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
+      tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+      tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+      normFactor <- rowMax(tempH)
+      
+      newExpo <- tempH / normFactor
+      newSigs <- tempW * normFactor
+      return(list(W = newSigs,
+                  H = newExpo))
+    })
+    names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
+    return(k_list)
+  })
+  names(all_list) <- names(WMatrixList(nmf.exp))
+  thisWMatrixList <- lapply(all_list, function(current_k_list){
+    kWMatrixList <- lapply(current_k_list, function(current_entry){
+      return(current_entry$W)
+    })
+  })
+  nmf.exp <- setWMatrixList(nmf.exp, thisWMatrixList)
+  thisHMatrixList <- lapply(all_list, function(current_k_list){
+    kHMatrixList <- lapply(current_k_list, function(current_entry){
+      return(current_entry$H)
+    })
+  })
+  nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
+  return(nmf.exp)  
+}
 
 #' Merge two objects of type nmfExperiment
 #'

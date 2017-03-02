@@ -7,7 +7,8 @@
 runNmfGpuPyCuda(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10,
   inner.iter = 10^4, conver.test.niter = 10,
   conver.test.stop.threshold = 40, out.dir = NULL,
-  tmp.path = "/tmp/nmf_tmp", w.sparsness = 0, h.sparsness = 0)
+  tmp.path = "/tmp/nmf_tmp", nmf.type = "N", w.sparsness = 0,
+  h.sparsness = 0, gpu.id = 0, binary.file.transfer = FALSE)
 }
 \arguments{
 \item{k.min}{}

@@ -308,10 +308,11 @@ setGeneric('setSignatureSpecificFeatures',
 setMethod('setSignatureSpecificFeatures', 'nmfExperiment', 
           function(nmfExperiment, SignatureSpecificFeatures) {
   if(nrow(nmfExperiment@SignatureSpecificFeatures) == 0) {
-    nmfExperiment@SignatureSpecificFeatures<- SignatureSpecificFeatures
+    nmfExperiment@SignatureSpecificFeatures <- SignatureSpecificFeatures
   } else {
-    nmfExperiment@SignatureSpecificFeatures<- c(nmfExperiment@SignatureSpecificFeatures, 
-                                                SignatureSpecificFeatures)
+    nmfExperiment@SignatureSpecificFeatures <- 
+      c(nmfExperiment@SignatureSpecificFeatures, 
+        SignatureSpecificFeatures)
   }
   return(nmfExperiment)
 })

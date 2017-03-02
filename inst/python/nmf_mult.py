@@ -363,6 +363,8 @@ if __name__ == "__main__":
     else:
         X = np.loadtxt(args.filename)
 
+    X = X.astype(np.float32)
+    
     cm.cuda_set_device(args.gpuID)
     cm.cublas_init()
 
@@ -389,8 +391,9 @@ if __name__ == "__main__":
         frobNorm = np.linalg.norm(X-np.dot(W,H)) / np.linalg.norm(X)
 
     if args.encoding == "npy":
-        np.save(args.filename + "_H.npy", H)
-        np.save(args.filename + "_W.npy", W)
+        # the RcppCNPy library needs arrays of float64 and with correct strides
+        np.save(args.filename + "_H.npy", H.astype(np.float64).copy())
+        np.save(args.filename + "_W.npy", W.astype(np.float64).copy())
     else:
         np.savetxt(args.filename + "_H.txt", H)
         np.savetxt(args.filename + "_W.txt", W)
