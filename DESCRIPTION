@@ -12,7 +12,10 @@ Import: rtracklayer,
     ggplot2,
     cowplot,
     ComplexHeatmap,
-    YAPSA
+    YAPSA,
+    RcppCNPy,
+    nnls,
+    riverplot
 Depends:
     SummarizedExperiment
 Description: More about what it does (maybe more than one line)
