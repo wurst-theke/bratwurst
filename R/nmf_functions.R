@@ -138,11 +138,12 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                             conver.test.stop.threshold = 40, out.dir = NULL,
                             tmp.path = '/tmp/nmf_tmp', nmf.type = "N",
                             w.sparsness = 0, h.sparsness = 0, gpu.id = 0,
-                            binary.file.transfer = FALSE) {
+                            seed = FALSE, binary.file.transfer = FALSE) {
 
   # Write raw matrix to tmp file 
   tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path,
                                    binary=binary.file.transfer)
+  # Define encoding
   encoding <- "txt"
   if(binary.file.transfer)
     encoding <- "npy"
@@ -166,10 +167,17 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
         # VERSION 1.0        
         # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
         # nmf.stdout <- system(nmf.cmd, intern = T)
-        nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
-                           file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                           tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                           gpu.id, encoding)
+        if (seed){
+          nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
+                             file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
+                             tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
+                             gpu.id, encoding, "True", k)
+        }else{
+          nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
+                             file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
+                             tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
+                             gpu.id, encoding)
+        }
         nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
         frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
         frob.error <- as.numeric(sub(".*: ", "", frob.error))    
