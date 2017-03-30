@@ -128,6 +128,7 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #' @return
 #' 
 #' @import SummarizedExperiment
+#' @import NMF
 #' @importFrom data.table fread
 #' @importFrom RcppCNPy npyLoad
 #' @export
@@ -138,85 +139,167 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                             conver.test.stop.threshold = 40, out.dir = NULL,
                             tmp.path = '/tmp/nmf_tmp', nmf.type = "N",
                             w.sparsness = 0, h.sparsness = 0, gpu.id = 0,
-                            seed = FALSE, binary.file.transfer = FALSE) {
-
-  # Write raw matrix to tmp file 
-  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path,
-                                   binary=binary.file.transfer)
-  # Define encoding
-  encoding <- "txt"
-  if(binary.file.transfer)
-    encoding <- "npy"
-
-  # Define pattern to finde GPU_NMF output.
-  tmp.dir <- dirname(tmpMatrix.path)
-  h.pattern <- sprintf('%s_H.%s', basename(tmpMatrix.path), encoding)
-  w.pattern <- sprintf('%s_W.%s', basename(tmpMatrix.path), encoding)
+                            seed = FALSE, binary.file.transfer = FALSE,
+                            cpu = FALSE) {
   
-  # Check if deconv. matrix should be saved
-  if(!is.null(out.dir)) dir.create(out.dir)
+  if(!cpu){
+    # Write raw matrix to tmp file 
+    tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path,
+                                     binary=binary.file.transfer)
+    # Define encoding
+    encoding <- "txt"
+    if(binary.file.transfer)
+      encoding <- "npy"
+    
+    # Define pattern to finde GPU_NMF output.
+    tmp.dir <- dirname(tmpMatrix.path)
+    h.pattern <- sprintf('%s_H.%s', basename(tmpMatrix.path), encoding)
+    w.pattern <- sprintf('%s_W.%s', basename(tmpMatrix.path), encoding)
+    
+    # Check if deconv. matrix should be saved
+    if(!is.null(out.dir)) dir.create(out.dir)
+    
+    # RUN NMF.
+    dec.matrix <- lapply(k.min:k.max, function(k) {
+      print(Sys.time())
+      cat("Factorization rank: ", k, "\n")
+      k.matrix <- lapply(1:outer.iter, function(i) {
+        if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
+        frob.error <- 1
+        while(frob.error == 1 | is.na(frob.error)){
+          # VERSION 1.0        
+          # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
+          # nmf.stdout <- system(nmf.cmd, intern = T)
+          if (seed){
+            nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
+                               file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
+                               tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
+                               gpu.id, encoding, "True", k)
+          }else{
+            nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
+                               file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
+                               tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
+                               gpu.id, encoding)
+          }
+          nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
+          frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
+          frob.error <- as.numeric(sub(".*: ", "", frob.error))    
+          if(length(frob.error)==0) frob.error <- 1
+        }   
+        h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
+        w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
+        if(!binary.file.transfer){
+          h.matrix <- fread(h.file, header = F)
+          w.matrix <- fread(w.file, header = F)
+        } else {
+          h.matrix <- npyLoad(h.file)
+          w.matrix <- npyLoad(w.file)
+        }
+        if(!is.null(out.dir)) {
+          file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.%s', k, i, encoding)))
+          file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.%s', k, i, encoding)))
+        }
+        file.remove(c(h.file, w.file))
+        return(list(H = h.matrix,
+                    W = w.matrix,
+                    Frob.error = frob.error))
+      })
+      names(k.matrix) <- 1:outer.iter
+      return(k.matrix)
+    })
+    names(dec.matrix) <- k.min:k.max
+    
+    ### Add NMF results to summarizedExp object.
+    # Frob Errors 
+    frob.errors <- DataFrame(getFrobError(dec.matrix))
+    colnames(frob.errors) <- as.character(k.min:k.max)
+    nmf.exp <- setFrobError(nmf.exp, frob.errors)
+    # H-Matrix List
+    nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
+    # W-Matrix List
+    nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
+    
+  }else{
+    # run NMF on CPU via CRAN R package
+    cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
+                              outer.iter = outer.iter)
+    ### Add NMF results to summarizedExp object
+    # compute Frob Erros and add them to nmf.exp
+    frob.errors <- DataFrame(computeCpuFrobErrors(nmf.exp, cpu.nmf.list, 
+                                                  k.min, k.max))
+    colnames(frob.errors) <- as.character(k.min:k.max)
+    nmf.exp <- setFrobError(nmf.exp, frob.errors)
+    # H-Matrix List
+    nmf.exp <- setHMatrixList(nmf.exp, getCpuHMatrixList(cpu.nmf.list, 
+                                                         k.min, k.max))
+    # W-Matrix List
+    nmf.exp <- setWMatrixList(nmf.exp, getCpuWMatrixList(cpu.nmf.list, 
+                                                         k.min, k.max))
+  }
   
-  # RUN NMF.
-  dec.matrix <- lapply(k.min:k.max, function(k) {
+ return(nmf.exp)
+}
+
+#' Title
+#'
+#' @param nmf.exp
+#' @param k.min  
+#' @param k.max 
+#' @param outer.iter 
+#'
+#' @return
+#' 
+#' @import NMF
+#'
+#' @examples
+runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10){
+  ## create ExpressionSet
+  eset <- new("ExpressionSet", exprs = assay(nmf.exp))
+  
+  # loop over all k and outer.iter iterations
+  cpu.nmf.list <- lapply(k.min:k.max, function(k){
     print(Sys.time())
     cat("Factorization rank: ", k, "\n")
-    k.matrix <- lapply(1:outer.iter, function(i) {
-      if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
-      frob.error <- 1
-      while(frob.error == 1 | is.na(frob.error)){
-        # VERSION 1.0        
-        # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
-        # nmf.stdout <- system(nmf.cmd, intern = T)
-        if (seed){
-          nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
-                             file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                             tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                             gpu.id, encoding, "True", k)
-        }else{
-          nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
-                             file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                             tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                             gpu.id, encoding)
-        }
-        nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
-        frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
-        frob.error <- as.numeric(sub(".*: ", "", frob.error))    
-        if(length(frob.error)==0) frob.error <- 1
-      }   
-      h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
-      w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
-      if(!binary.file.transfer){
-        h.matrix <- fread(h.file, header = F)
-        w.matrix <- fread(w.file, header = F)
-      } else {
-        h.matrix <- npyLoad(h.file)
-        w.matrix <- npyLoad(w.file)
-      }
-      if(!is.null(out.dir)) {
-        file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.%s', k, i, encoding)))
-        file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.%s', k, i, encoding)))
-      }
-      file.remove(c(h.file, w.file))
-            return(list(H = h.matrix,
-                        W = w.matrix,
-                        Frob.error = frob.error))
-     })
-     names(k.matrix) <- 1:outer.iter
-     return(k.matrix)
+    if(seed){
+      cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
+                     .options = list(keep.all = TRUE), seed=12)
+    }else {
+      cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
+                     .options = list(keep.all = TRUE))
+    }
+    
+    return(cpu.nmf)
   })
-  names(dec.matrix) <- k.min:k.max
+  
+  return(cpu.nmf.list)
+}
 
-  ### Add NMF results to summarizedExp object.
-  # Frob Errors 
-  frob.errors <- DataFrame(getFrobError(dec.matrix))
-  colnames(frob.errors) <- as.character(k.min:k.max)
-  nmf.exp <- setFrobError(nmf.exp, frob.errors)
-  # H-Matrix List
-  nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
-  # W-Matrix List
-  nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
-
- return(nmf.exp)
+#' Title
+#'
+#' @param nmf.exp
+#' @param k.min  
+#' @param k.max 
+#' @param outer.iter 
+#'
+#' @return
+#' 
+#' @import NMF
+#'
+#' @examples
+computeCpuFrobErrors <- function(nmf.exp, cpu.nmf.list, k.min, k.max){
+  frob.errors <- do.call(cbind, lapply(seq(length(k.min:k.max)), function(ki){
+    # get all W-matrices
+    W.list <- lapply(cpu.nmf.list[[ki]], basis)
+    # get all H-matrices
+    H.list <- lapply(cpu.nmf.list[[ki]], coef)
+    fes <- sapply(seq(length(W.list)), function(oi){
+      fe <- norm(assay(nmf.exp) - (W.list[[oi]] %*% H.list[[oi]]), type = "F")/
+        norm(assay(nmf.exp), type = "F") 
+    })
+    return(fes)
+  }))
+  
+  return(frob.errors)
 }
 
 
@@ -276,6 +359,40 @@ getWMatrixList <- function(dec.matrix) {
     return(W)
   })
   return(W.list)
+}
+
+#' Getter function for W-Matrix list from NMF-CPU list
+#'
+#' @param dec.matrix 
+#'
+#' @return
+#'
+#' @examples
+getCpuWMatrixList <- function(cpu.nmf.list, k.min, k.max) {
+  # Extract all entries for W and return.
+  W.list <- lapply(cpu.nmf.list, function(cpu.nmf) {
+    W <- lapply(cpu.nmf, basis)
+    return(W)
+  })
+  names(W.list) <- as.character(k.min:k.max)
+  return(W.list)
+}
+
+#' Getter function for H-Matrix list from NMF-CPU list
+#'
+#' @param dec.matrix 
+#'
+#' @return
+#'
+#' @examples
+getCpuHMatrixList <- function(cpu.nmf.list, k.min, k.max) {
+  # Extract all entries for H and return.
+  H.list <- lapply(cpu.nmf.list, function(cpu.nmf) {
+    H <- lapply(cpu.nmf, coef)
+    return(H)
+  })
+  names(H.list) <- as.character(k.min:k.max)
+  return(H.list)
 }
 
 #==============================================================================#
@@ -1010,14 +1127,13 @@ merge.nmf <- function(in_nmf1,
 
 #' Compute signature specific features
 #'
-#' @param nmf.exp
+#' @param nmf.exp A NMF experiment object
 #' @param rowDataId The index of the rowData(nmf.exp) data.frame that should be used for 
 #'  feature extraction. In case rowData(nmf.exp)[,1] is a GRanges or a related object like
 #'  GenomicInteractions this parameter can be ignored
 #'
 #' @return nmf.exp with filles SignatureSpecificFeatures container
 #'
-#' @references 
 #'
 #' @export
 #'
