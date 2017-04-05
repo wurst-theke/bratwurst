@@ -174,7 +174,7 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
             nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
                                file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
                                tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                               gpu.id, encoding, "True", k)
+                               gpu.id, encoding, "True", i)
           }else{
             nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
                                file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
@@ -221,8 +221,10 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     
   }else{
     # run NMF on CPU via CRAN R package
+    # cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
+    #                           outer.iter = outer.iter)
     cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
-                              outer.iter = outer.iter)
+                              nrun = outer.iter)
     ### Add NMF results to summarizedExp object
     # compute Frob Erros and add them to nmf.exp
     frob.errors <- DataFrame(computeCpuFrobErrors(nmf.exp, cpu.nmf.list, 
@@ -252,8 +254,9 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #' @import NMF
 #'
 #' @examples
-runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10){
-  ## create ExpressionSet
+#runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10){
+runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, ...){
+    ## create ExpressionSet
   eset <- new("ExpressionSet", exprs = assay(nmf.exp))
   
   # loop over all k and outer.iter iterations
@@ -261,10 +264,12 @@ runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10){
     print(Sys.time())
     cat("Factorization rank: ", k, "\n")
     if(seed){
-      cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
+      #cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
+      cpu.nmf <- nmf(eset, rank = k, ...,
                      .options = list(keep.all = TRUE), seed=12)
     }else {
-      cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
+      #cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
+      cpu.nmf <- nmf(eset, rank = k, ...,
                      .options = list(keep.all = TRUE))
     }
     
