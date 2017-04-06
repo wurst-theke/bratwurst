@@ -15,7 +15,8 @@ Import: rtracklayer,
     YAPSA,
     RcppCNPy,
     nnls,
-    riverplot
+    riverplot,
+    NMF
 Depends:
     SummarizedExperiment
 Description: More about what it does (maybe more than one line)

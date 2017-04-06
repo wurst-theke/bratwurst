@@ -166,26 +166,31 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
       k.matrix <- lapply(1:outer.iter, function(i) {
         if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
         frob.error <- 1
-        while(frob.error == 1 | is.na(frob.error)){
-          # VERSION 1.0        
-          # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
-          # nmf.stdout <- system(nmf.cmd, intern = T)
-          if (seed){
-            nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
-                               file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                               tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                               gpu.id, encoding, "True", i)
-          }else{
+        if (seed){
+          nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
+                             file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
+                             tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
+                             gpu.id, encoding, "True", i)
+          
+          nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
+          frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
+          frob.error <- as.numeric(sub(".*: ", "", frob.error))    
+        }else{
+          count <-  1 
+          while((frob.error == 1 | is.na(frob.error)) & count < 11){
+            count <- count + 1
             nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
                                file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
                                tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
                                gpu.id, encoding)
+            
+            nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
+            frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
+            frob.error <- as.numeric(sub(".*: ", "", frob.error))    
+            if(length(frob.error)==0) frob.error <- 1
           }
-          nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
-          frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
-          frob.error <- as.numeric(sub(".*: ", "", frob.error))    
-          if(length(frob.error)==0) frob.error <- 1
-        }   
+        }
+        
         h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
         w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
         if(!binary.file.transfer){
@@ -224,7 +229,7 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     # cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
     #                           outer.iter = outer.iter)
     cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
-                              nrun = outer.iter)
+                              nrun = outer.iter, seed = seed)
     ### Add NMF results to summarizedExp object
     # compute Frob Erros and add them to nmf.exp
     frob.errors <- DataFrame(computeCpuFrobErrors(nmf.exp, cpu.nmf.list, 
@@ -255,7 +260,7 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #'
 #' @examples
 #runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10){
-runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, ...){
+runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, seed = FALSE, ...){
     ## create ExpressionSet
   eset <- new("ExpressionSet", exprs = assay(nmf.exp))
   
@@ -520,7 +525,8 @@ cosineDissMat <- function(in.matrix, in.dimension=2){
 #' @examples
 computeSilhoutteWidth <- function(nmf.exp) {
   sil.vec <- lapply(WMatrixList(nmf.exp), function(WMatrix.list) {
-    concat.matrix <- do.call(cbind, WMatrix.list)
+    nan.bool <- sapply(WMatrix.list, function(m) !any(is.nan(m)))
+    concat.matrix <- do.call(cbind, WMatrix.list[which(nan.bool)])
     dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.pam <- pam(dist.matrix, k = ncol(WMatrix.list[[1]]),  diss = T)
     sil.sum <- sum(my.pam$silinfo$widths[,'sil_width'])
@@ -543,7 +549,9 @@ computeSilhoutteWidth <- function(nmf.exp) {
 #' @examples
 computeCopheneticCoeff <- function(nmf.exp) {
   coph.coeff <- lapply(WMatrixList(nmf.exp), function(WMatrix.list) {
-    concat.matrix <- do.call(cbind, WMatrix.list)
+    nan.bool <- sapply(WMatrix.list, function(m) !any(is.nan(m)))
+    concat.matrix <- do.call(cbind, WMatrix.list[which(nan.bool)])
+    #concat.matrix <- do.call(cbind, WMatrix.list)
     dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.hclust <- hclust(as.dist(dist.matrix))
     dist.cophenetic <- as.matrix(cophenetic(my.hclust))
@@ -913,12 +921,18 @@ normalizeW <- function(nmf.exp){
       tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
       tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
       normFactor <- colSums(tempW)
-      newSigs <- as.matrix(normalize_df_per_dim(tempW, 2))
-      newExpo <- tempH * normFactor
-      #newV <- newSigs %*% newExpo
-      #oldV <- tempW %*% tempH
-      return(list(W = newSigs,
-                  H = newExpo))
+      # catch errors associated with NaNs in W or H
+      if (any(is.nan(normFactor))){
+        return(list(W = tempW,
+                    H = tempH))
+      }else{
+        newSigs <- as.matrix(normalize_df_per_dim(tempW, 2))
+        newExpo <- tempH * normFactor
+        #newV <- newSigs %*% newExpo
+        #oldV <- tempW %*% tempH
+        return(list(W = newSigs,
+                    H = newExpo)) 
+      }
     })
     names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
     return(k_list)
