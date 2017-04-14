@@ -12,19 +12,20 @@
 #' @importFrom RcppCNPy npySave
 #'
 #' @examples
-writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ', binary=FALSE) {
+writeTmpMatrix <- function(matrix, tmp.path = "/tmp/nmf_tmp",
+                           sep = " ", binary=FALSE) {
   # Write matrix to tmp file.
   matrix <- round(matrix, 7)
   dir.create(tmp.path)
   # Rmv final slash from path --> will lead to an error of nmfGpu wrapper
-  tmp.path <- sub('/$', '', tmp.path)
-  
+  tmp.path <- sub("/$", "", tmp.path)
+
   if(!binary){
-    tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = '.txt')
-    write.table(matrix, file = tmpMatrix.path, quote = F, 
+    tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = ".txt")
+    write.table(matrix, file = tmpMatrix.path, quote = F,
                 col.names = F, row.names = F, sep = sep)
   } else {
-    tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = '.npy')
+    tmpMatrix.path <- tempfile(tmpdir = tmp.path, fileext = ".npy")
     npySave(tmpMatrix.path, matrix)
   }
   return(tmpMatrix.path)
@@ -49,21 +50,21 @@ writeTmpMatrix <- function(matrix, tmp.path = '/tmp/nmf_tmp', sep = ' ', binary=
 #'
 #' @examples
 runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
-                      inner.iter = 10^4, conver.test.niter = 10, 
-                      conver.test.stop.threshold = 40, out.dir = NULL, 
-                      tmp.path = '/tmp/nmf_tmp') {
-  
-  # Write raw matrix to tmp file 
-  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path)
-  
+                      inner.iter = 10^4, conver.test.niter = 10,
+                      conver.test.stop.threshold = 40, out.dir = NULL,
+                      tmp.path = "/tmp/nmf_tmp") {
+
+  # Write raw matrix to tmp file
+  tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, "raw"), tmp.path = tmp.path)
+
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
-  h.pattern <- sprintf('%s_H.txt', basename(tmpMatrix.path))
-  w.pattern <- sprintf('%s_W.txt', basename(tmpMatrix.path))
-  
+  h.pattern <- sprintf("%s_H.txt", basename(tmpMatrix.path))
+  w.pattern <- sprintf("%s_W.txt", basename(tmpMatrix.path))
+
   # Check if deconv. matrix should be saved
   if(!is.null(out.dir)) dir.create(out.dir)
-  
+
   # RUN NMF.
   dec.matrix <- lapply(k.min:k.max, function(k) {
     print(Sys.time())
@@ -72,25 +73,29 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
       if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
       frob.error <- 1
       while(frob.error == 1 | is.na(frob.error)){
-        # VERSION 1.0        
-        # nmf.cmd <- sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
+        # VERSION 1.0
+        # nmf.cmd <-
+        #   sprintf('NMF_GPU %s -k %s -i %s', tmpMatrix.path, k, inner.iter)
         # nmf.stdout <- system(nmf.cmd, intern = T)
-        nmf.cmd <- sprintf('%s -k %i -i %i -j %i -t %i', tmpMatrix.path, k,
+        nmf.cmd <- sprintf("%s -k %i -i %i -j %i -t %i", tmpMatrix.path, k,
                            inner.iter, conver.test.niter,
                            conver.test.stop.threshold)
-        nmf.stdout <- system2('NMF_GPU', args = nmf.cmd, stdout = T, stderr = NULL)
-        frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
-        frob.error <- as.numeric(sub(".*: ", "", frob.error))      
-        if(length(frob.error)==0) frob.error <- 1
+        nmf.stdout <-
+          system2("NMF_GPU", args = nmf.cmd, stdout = T, stderr = NULL)
+        frob.error <- nmf.stdout[grep(nmf.stdout, pattern = "Distance")]
+        frob.error <- as.numeric(sub(".*: ", "", frob.error))
+        if(length(frob.error) == 0) frob.error <- 1
       }
       h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
       h.matrix <- fread(h.file, header = F)
       w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
       w.matrix <- fread(w.file, header = F)
       if(!is.null(out.dir)) {
-        file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.txt', k, i)))     
-        file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.txt', k, i)))
-      } 
+        file.copy(h.file,
+                  file.path(out.dir, sprintf("H_k%s_iter%s.txt", k, i)))
+        file.copy(w.file,
+                  file.path(out.dir, sprintf("W_k%s_iter%s.txt", k, i)))
+      }
       file.remove(c(h.file, w.file))
       return(list(H = h.matrix,
                   W = w.matrix,
@@ -100,9 +105,9 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     return(k.matrix)
   })
   names(dec.matrix) <- k.min:k.max
-  
+
   ### Add NMF results to summarizedExp object.
-  # Frob Errors 
+  # Frob Errors
   frob.errors <- DataFrame(getFrobError(dec.matrix))
   colnames(frob.errors) <- as.character(k.min:k.max)
   nmf.exp <- setFrobError(nmf.exp, frob.errors)
@@ -110,7 +115,7 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
   nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
   # W-Matrix List
   nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
-  
+
   return(nmf.exp)
 }
 
@@ -137,28 +142,28 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                             inner.iter = 10^4, conver.test.niter = 10,
                             conver.test.stop.threshold = 40, out.dir = NULL,
-                            tmp.path = '/tmp/nmf_tmp', nmf.type = "N",
+                            tmp.path = "/tmp/nmf_tmp", nmf.type = "N",
                             w.sparsness = 0, h.sparsness = 0, gpu.id = 0,
                             seed = FALSE, binary.file.transfer = FALSE,
                             cpu = FALSE) {
-  
+
   if(!cpu){
-    # Write raw matrix to tmp file 
-    tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, 'raw'), tmp.path = tmp.path,
-                                     binary=binary.file.transfer)
+    # Write raw matrix to tmp file
+    tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, "raw"), tmp.path = tmp.path,
+                                     binary = binary.file.transfer)
     # Define encoding
     encoding <- "txt"
     if(binary.file.transfer)
       encoding <- "npy"
-    
+
     # Define pattern to finde GPU_NMF output.
     tmp.dir <- dirname(tmpMatrix.path)
-    h.pattern <- sprintf('%s_H.%s', basename(tmpMatrix.path), encoding)
-    w.pattern <- sprintf('%s_W.%s', basename(tmpMatrix.path), encoding)
-    
+    h.pattern <- sprintf("%s_H.%s", basename(tmpMatrix.path), encoding)
+    w.pattern <- sprintf("%s_W.%s", basename(tmpMatrix.path), encoding)
+
     # Check if deconv. matrix should be saved
     if(!is.null(out.dir)) dir.create(out.dir)
-    
+
     # RUN NMF.
     dec.matrix <- lapply(k.min:k.max, function(k) {
       print(Sys.time())
@@ -167,30 +172,35 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
         if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
         frob.error <- 1
         if (seed){
-          nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s -sets %s -sv %i', 
-                             file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                             tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                             gpu.id, encoding, "True", i)
-          
-          nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
-          frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
-          frob.error <- as.numeric(sub(".*: ", "", frob.error))    
-        }else{
-          count <-  1 
+          nmf.cmd <-
+            sprintf(paste0("%s %s -k %i -i %i -s %s -wo %s -ho %s ",
+                           "-g %i -e %s -sets %s -sv %i"),
+                    file.path(system.file(package = "Bratwurst"),
+                              "python/nmf_mult.py"),
+                    tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness,
+                    h.sparsness, gpu.id, encoding, "True", i)
+          nmf.stdout <- system2("python", args = nmf.cmd, stdout = T,
+                                stderr = NULL)
+          frob.error <- nmf.stdout[grep(nmf.stdout, pattern = "Distance")]
+          frob.error <- as.numeric(sub(".*: ", "", frob.error))
+        } else {
+          count <-  1
           while((frob.error == 1 | is.na(frob.error)) & count < 11){
             count <- count + 1
-            nmf.cmd <- sprintf('%s %s -k %i -i %i -s %s -wo %s -ho %s -g %i -e %s', 
-                               file.path(system.file(package="Bratwurst"), "python/nmf_mult.py"),
-                               tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness, h.sparsness,
-                               gpu.id, encoding)
-            
-            nmf.stdout <- system2('python', args = nmf.cmd, stdout = T, stderr = NULL)
-            frob.error <- nmf.stdout[grep(nmf.stdout, pattern = 'Distance')]
-            frob.error <- as.numeric(sub(".*: ", "", frob.error))    
-            if(length(frob.error)==0) frob.error <- 1
+            nmf.cmd <-
+              sprintf(paste0("%s %s -k %i -i %i -s %s -wo %s -ho %s ",
+                             "-g %i -e %s"),
+                      file.path(system.file(package = "Bratwurst"),
+                                "python/nmf_mult.py"),
+                      tmpMatrix.path, k, inner.iter, nmf.type, w.sparsness,
+                      h.sparsness, gpu.id, encoding)
+            nmf.stdout <- system2("python", args = nmf.cmd, stdout = T,
+                                  stderr = NULL)
+            frob.error <- nmf.stdout[grep(nmf.stdout, pattern = "Distance")]
+            frob.error <- as.numeric(sub(".*: ", "", frob.error))
+            if(length(frob.error) == 0) frob.error <- 1
           }
         }
-        
         h.file <- list.files(tmp.dir, pattern = h.pattern, full.names = T)
         w.file <- list.files(tmp.dir, pattern = w.pattern, full.names = T)
         if(!binary.file.transfer){
@@ -201,8 +211,10 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
           w.matrix <- npyLoad(w.file)
         }
         if(!is.null(out.dir)) {
-          file.copy(h.file, file.path(out.dir, sprintf('H_k%s_iter%s.%s', k, i, encoding)))
-          file.copy(w.file, file.path(out.dir, sprintf('W_k%s_iter%s.%s', k, i, encoding)))
+          file.copy(h.file, file.path(out.dir, sprintf("H_k%s_iter%s.%s",
+                                                       k, i, encoding)))
+          file.copy(w.file, file.path(out.dir, sprintf("W_k%s_iter%s.%s",
+                                                       k, i, encoding)))
         }
         file.remove(c(h.file, w.file))
         return(list(H = h.matrix,
@@ -213,9 +225,9 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
       return(k.matrix)
     })
     names(dec.matrix) <- k.min:k.max
-    
+
     ### Add NMF results to summarizedExp object.
-    # Frob Errors 
+    # Frob Errors
     frob.errors <- DataFrame(getFrobError(dec.matrix))
     colnames(frob.errors) <- as.character(k.min:k.max)
     nmf.exp <- setFrobError(nmf.exp, frob.errors)
@@ -223,24 +235,24 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
     # W-Matrix List
     nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
-    
-  }else{
+
+  } else {
     # run NMF on CPU via CRAN R package
-    # cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
+    # cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max,
     #                           outer.iter = outer.iter)
-    cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max, 
+    cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max,
                               nrun = outer.iter, seed = seed)
     ### Add NMF results to summarizedExp object
     # compute Frob Erros and add them to nmf.exp
-    frob.errors <- DataFrame(computeCpuFrobErrors(nmf.exp, cpu.nmf.list, 
+    frob.errors <- DataFrame(computeCpuFrobErrors(nmf.exp, cpu.nmf.list,
                                                   k.min, k.max))
     colnames(frob.errors) <- as.character(k.min:k.max)
     nmf.exp <- setFrobError(nmf.exp, frob.errors)
     # H-Matrix List
-    nmf.exp <- setHMatrixList(nmf.exp, getCpuHMatrixList(cpu.nmf.list, 
+    nmf.exp <- setHMatrixList(nmf.exp, getCpuHMatrixList(cpu.nmf.list,
                                                          k.min, k.max))
     # W-Matrix List
-    nmf.exp <- setWMatrixList(nmf.exp, getCpuWMatrixList(cpu.nmf.list, 
+    nmf.exp <- setWMatrixList(nmf.exp, getCpuWMatrixList(cpu.nmf.list,
                                                          k.min, k.max))
   }
   
@@ -263,7 +275,7 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, seed = FALSE, ...){
     ## create ExpressionSet
   eset <- new("ExpressionSet", exprs = assay(nmf.exp))
-  
+
   # loop over all k and outer.iter iterations
   cpu.nmf.list <- lapply(k.min:k.max, function(k){
     print(Sys.time())
@@ -271,16 +283,16 @@ runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, seed = FALSE, ...){
     if(seed){
       #cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
       cpu.nmf <- nmf(eset, rank = k, ...,
-                     .options = list(keep.all = TRUE), seed=12)
+                     .options = list(keep.all = TRUE), seed = 12)
     }else {
       #cpu.nmf <- nmf(eset, rank = k, method = "brunet", nrun = outer.iter,
       cpu.nmf <- nmf(eset, rank = k, ...,
                      .options = list(keep.all = TRUE))
     }
-    
+
     return(cpu.nmf)
   })
-  
+
   return(cpu.nmf.list)
 }
 
@@ -303,12 +315,12 @@ computeCpuFrobErrors <- function(nmf.exp, cpu.nmf.list, k.min, k.max){
     # get all H-matrices
     H.list <- lapply(cpu.nmf.list[[ki]], coef)
     fes <- sapply(seq(length(W.list)), function(oi){
-      fe <- norm(assay(nmf.exp) - (W.list[[oi]] %*% H.list[[oi]]), type = "F")/
-        norm(assay(nmf.exp), type = "F") 
+      fe <- norm(assay(nmf.exp) - (W.list[[oi]] %*% H.list[[oi]]), type = "F") /
+        norm(assay(nmf.exp), type = "F")
     })
     return(fes)
   }))
-  
+
   return(frob.errors)
 }
 
@@ -331,10 +343,11 @@ getFrobError <- function(dec.matrix) {
     lapply(dec.m, function(m) m$Frob.error)
   })
   frob.errorMatrix <- melt(frob.errorList)
-  frob.errorMatrix <- dcast(frob.errorMatrix, L2 ~ L1, value.var = 'value')
+  frob.errorMatrix <- dcast(frob.errorMatrix, L2 ~ L1, value.var = "value")
   frob.errorMatrix <- frob.errorMatrix[order(as.numeric(frob.errorMatrix$L2)),]
-  frob.errorMatrix <- frob.errorMatrix[,-1]
-  frob.errorMatrix <- frob.errorMatrix[,order(as.numeric(colnames(frob.errorMatrix)))]
+  frob.errorMatrix <- frob.errorMatrix[, -1]
+  frob.errorMatrix <-
+    frob.errorMatrix[, order(as.numeric(colnames(frob.errorMatrix)))]
   frob.errorMatrix[frob.errorMatrix == 1] <- NA
   return(frob.errorMatrix)
 }
@@ -421,12 +434,12 @@ computeFrobErrorStats <- function(nmf.exp) {
   min.frobError <- apply(frob.errorMatrix, 2, function(x) min(x, na.rm = T))
   sd.frobError <- apply(frob.errorMatrix, 2, function(x) sd(x, na.rm = T))
   mean.frobError <- colMeans(frob.errorMatrix, na.rm = T)
-  cv.frobError <- sd.frobError/mean.frobError
-  frobError.data <- DataFrame('k' = as.numeric(names(min.frobError)),
-                              'min' = min.frobError, 
-                              'mean' = mean.frobError,
-                              'sd' = sd.frobError,
-                              'cv' = cv.frobError)
+  cv.frobError <- sd.frobError / mean.frobError
+  frobError.data <- DataFrame("k" = as.numeric(names(min.frobError)),
+                              "min" = min.frobError,
+                              "mean" = mean.frobError,
+                              "sd" = sd.frobError,
+                              "cv" = cv.frobError)
   nmf.exp <- setOptKStats(nmf.exp, frobError.data)
   return(nmf.exp)
 }
@@ -441,11 +454,11 @@ computeFrobErrorStats <- function(nmf.exp) {
 #' @examples
 computePValue4FrobError <- function(frobError.matrix) {
   n.col <- ncol(frobError.matrix)
-  p <- mapply(1:(n.col-1), 2:n.col, FUN = function(i,j) {
-    p <- t.test(frobError.matrix[,i], frobError.matrix[,j])
+  p <- mapply(1:(n.col - 1), 2:n.col, FUN = function(i, j) {
+    p <- t.test(frobError.matrix[, i], frobError.matrix[, j])
     return(p$p.value)
   })
-  #p <- p.adjust(unlist(p), method = 'BH') 
+  #p <- p.adjust(unlist(p), method = 'BH')
   return(-log10(unlist(p)))
 }
 
@@ -458,8 +471,8 @@ computePValue4FrobError <- function(frobError.matrix) {
 #' @export
 #'
 #' @examples
-cosineSim <- function(a,b){
-  return(sum(a*b) / ( sqrt(sum(a * a)) * sqrt(sum(b * b)) )) 
+cosineSim <- function(a, b){
+  return(sum(a * b) / ( sqrt(sum(a * a)) * sqrt(sum(b * b)) ))
 }
 
 #' Cosine distance
@@ -471,8 +484,8 @@ cosineSim <- function(a,b){
 #' @export
 #'
 #' @examples
-cosineDist <- function(a,b){
-  return(1 - cosineSim(a,b)) 
+cosineDist <- function(a, b){
+  return(1 - cosineSim(a, b))
 }
 
 #' Create distance matrix with cosine similarity
@@ -488,11 +501,11 @@ cosineDiss <- function(in.matrix, in.dimension=2){
   if(in.dimension == 1) in.matrix <- t(in.matrix)
   cosineDist.list <- lapply(1:ncol(in.matrix), function(i.outCol) {
     cosine.dists <- unlist(lapply(1:ncol(in.matrix), function(i.innCol) {
-      cosineDist(in.matrix[,i.outCol], in.matrix[,i.innCol])
+      cosineDist(in.matrix[, i.outCol], in.matrix[, i.innCol])
     }))
   })
-  diss.matrix <- do.call(rbind, cosineDist.list)  
-  return(round(diss.matrix, digits=14))
+  diss.matrix <- do.call(rbind, cosineDist.list)
+  return(round(diss.matrix, digits = 14))
 }
 
 #' Create distance matrix with cosine similarity with matrix operations
@@ -506,11 +519,13 @@ cosineDiss <- function(in.matrix, in.dimension=2){
 #' @examples
 cosineDissMat <- function(in.matrix, in.dimension=2){
   if(in.dimension == 1) in.matrix <- t(in.matrix)
-  squaredVectorSum <- apply(in.matrix, 2, function(m) {sqrt(sum(m*m))})
+  squaredVectorSum <- apply(in.matrix, 2, function(m) { sqrt(sum(m * m)) })
   squaredVectorProduct <- squaredVectorSum %*% t(squaredVectorSum)
-  squaredInputSum <- t(in.matrix) %*% in.matrix # sum(a*b) for any a,b in M
-  diss.matrix <- 1 - squaredInputSum / squaredVectorProduct  # CosineDistance = 1 - CosineSimilarity
-  return(round(diss.matrix, digits=14))
+  squaredInputSum <- t(in.matrix) %*% in.matrix
+  # sum(a*b) for any a,b in M
+  diss.matrix <- 1 - squaredInputSum / squaredVectorProduct
+  # CosineDistance = 1 - CosineSimilarity
+  return(round(diss.matrix, digits = 14))
 }
 
 #' Compute Alexandrov Criterion --> Silhoutte Width
@@ -529,14 +544,14 @@ computeSilhoutteWidth <- function(nmf.exp) {
     concat.matrix <- do.call(cbind, WMatrix.list[which(nan.bool)])
     dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.pam <- pam(dist.matrix, k = ncol(WMatrix.list[[1]]),  diss = T)
-    sil.sum <- sum(my.pam$silinfo$widths[,'sil_width'])
-    sil.mean <- mean(my.pam$silinfo$widths[,'sil_width'])
+    sil.sum <- sum(my.pam$silinfo$widths[, "sil_width"])
+    sil.mean <- mean(my.pam$silinfo$widths[, "sil_width"])
     return(DataFrame(sumSilWidth = sil.sum,
                      meanSilWidth = sil.mean))
   })
   sil.vec <- do.call(rbind, sil.vec)
   nmf.exp <- setOptKStats(nmf.exp, cbind(OptKStats(nmf.exp), sil.vec))
-  return(nmf.exp)  
+  return(nmf.exp)
 }
 
 #' Compute Cophenetic correlation coefficient, TO BE IMPROVED
@@ -555,14 +570,12 @@ computeCopheneticCoeff <- function(nmf.exp) {
     dist.matrix <- cosineDissMat(as.matrix(concat.matrix))
     my.hclust <- hclust(as.dist(dist.matrix))
     dist.cophenetic <- as.matrix(cophenetic(my.hclust))
-    
     # take distance matrices without diagonal elements
-    diag(dist.matrix) = NA
-    dist.matrix<-dist.matrix[which(!is.na(dist.matrix))]
-    diag(dist.cophenetic) = NA
-    dist.cophenetic<-dist.cophenetic[which(!is.na(dist.cophenetic))]
-    
-    return(cor(cbind(dist.cophenetic, dist.matrix))[1,2])
+    diag(dist.matrix) <- NA
+    dist.matrix <- dist.matrix[which(!is.na(dist.matrix))]
+    diag(dist.cophenetic) <- NA
+    dist.cophenetic <- dist.cophenetic[which(!is.na(dist.cophenetic))]
+    return(cor(cbind(dist.cophenetic, dist.matrix))[1, 2])
   })
   coph.coeff <- DataFrame(copheneticCoeff = unlist(coph.coeff))
   nmf.exp <- setOptKStats(nmf.exp, cbind(OptKStats(nmf.exp), coph.coeff))
@@ -584,7 +597,7 @@ computeCopheneticCoeff <- function(nmf.exp) {
 amariDistance <- function(matrix.A, matrix.B) {
   K <- dim(matrix.A)[2]
   C <- cor(matrix.A, matrix.B)
-  return(1 - (sum(apply(C, 1, max)) + sum(apply(C,2,max))) / (2 * K))
+  return(1 - (sum(apply(C, 1, max)) + sum(apply(C, 2, max))) / (2 * K))
 }
 
 #' Compute Amari Distances from [Wu et. al, PNAS 2016]
@@ -601,12 +614,13 @@ amariDistance <- function(matrix.A, matrix.B) {
 computeAmariDistances <- function(nmf.exp){
   distance.averages <- lapply(WMatrixList(nmf.exp), function(matrices) {
     B <- length(matrices)
-    distances.list <- unlist(lapply(1:(B-1), function(b) {
-      distances <- lapply((b+1):B, function(b.hat) {
+    distances.list <- unlist(lapply(1:(B - 1), function(b) {
+      distances <- lapply((b + 1):B, function(b.hat) {
         amariDistance(matrices[[b]], matrices[[b.hat]])
       })
     }))
-    return(mean(distances.list[!is.na(distances.list)])) # is.na to exclude corrupted matrices
+    return(mean(distances.list[!is.na(distances.list)]))
+    # is.na to exclude corrupted matrices
   })
   distance.averages <- DataFrame(meanAmariDist = unlist(distance.averages))
   nmf.exp <- setOptKStats(nmf.exp, cbind(OptKStats(nmf.exp), distance.averages))
@@ -630,26 +644,26 @@ computeAmariDistances <- function(nmf.exp){
 getSignatureNames <- function(nmf.exp, k.opt) {
   H <- HMatrix(nmf.exp, k = k.opt)
   sig.names <- lapply(1:nrow(H), function(i) {
-    k.cluster <- kmeans(as.numeric(H[i,]), 2)
+    k.cluster <- kmeans(as.numeric(H[i, ]), 2)
     n.kCluster <- which(k.cluster$centers == max(k.cluster$centers))
     samples.kCluster <- which(k.cluster$cluster == n.kCluster)
-    meta.data <- colData(nmf.exp)[samples.kCluster,]
+    meta.data <- colData(nmf.exp)[samples.kCluster, ]
     n.col <- ncol(meta.data)
     if (n.col > 1) {
       sigName.combs <- apply(as.data.frame(meta.data), 1, function(x){
-        paste(x[2:n.col], collapse = ' ') 
+        paste(x[2:n.col], collapse = " ")
       })
       sigName.combs <- sort(table(sigName.combs), decreasing = T)
       sig.name <- names(sigName.combs)[1]
       # TODO: Might be improvable by using exposures from H-Matrix.
       # Exposure proportion computation!?
       if(length(sigName.combs) > 1) {
-        sig.prop <- round(sigName.combs/sum(sigName.combs), 2)
+        sig.prop <- round(sigName.combs / sum(sigName.combs), 2)
         sig.prop <- paste(names(sig.prop), sig.prop)
-        sig.name <- paste(sig.prop, collapse = '\n')
+        sig.name <- paste(sig.prop, collapse = "\n")
       }
     } else {
-      sig.name <- sprintf('Signature %s', i)
+      sig.name <- sprintf("Signature %s", i)
     }
     return(sig.name)
   })
@@ -670,9 +684,9 @@ getSignatureNames <- function(nmf.exp, k.opt) {
 #'
 #' @examples
 computeEntropy <- function(matrix) {
-  matrix.relativ <- t(apply(matrix, 1, function(x) x/sum(x)))
+  matrix.relativ <- t(apply(matrix, 1, function(x) x / sum(x)))
   matrix.entropy <- apply(matrix.relativ, 1, function(x) {
-    p <- x*log2(length(x)*x)
+    p <- x * log2(length(x) * x)
     p[is.na(p)] <- 0
     h <- sum(p)
     return(h)
@@ -691,7 +705,7 @@ computeEntropy <- function(matrix) {
 computeEntropy4OptK <- function(nmf.exp) {
   W <- WMatrix(nmf.exp, OptK(nmf.exp))
   W.entropy <- computeEntropy(W)
-  nmf.exp <- setFeatureStats(nmf.exp, DataFrame('entropy' = W.entropy))
+  nmf.exp <- setFeatureStats(nmf.exp, DataFrame("entropy" = W.entropy))
   return(nmf.exp)
 }
 
@@ -704,11 +718,11 @@ computeEntropy4OptK <- function(nmf.exp) {
 #' @examples
 computeAbsDelta <- function(matrix) {
   delta.regions <- lapply(1:ncol(matrix), function(k) {
-    delta.vec <- matrix[,k]-(rowSums(matrix[,-k]))
+    delta.vec <- matrix[, k] - (rowSums(matrix[, -k]))
     return(delta.vec)
   })
   delta.regions <- do.call(cbind, delta.regions)
-  return(delta.regions) 
+  return(delta.regions)
 }
 
 #' Computes absolut delta per feature for each signature given optimal K
@@ -722,7 +736,7 @@ computeAbsDelta <- function(matrix) {
 computeAbsDelta4OptK <- function(nmf.exp) {
   W <- WMatrix(nmf.exp, OptK(nmf.exp))
   W.absDelta <- computeAbsDelta(W)
-  nmf.exp <- setFeatureStats(nmf.exp, DataFrame('absDelta' = W.absDelta))
+  nmf.exp <- setFeatureStats(nmf.exp, DataFrame("absDelta" = W.absDelta))
   return(nmf.exp)
 }
 
@@ -734,7 +748,7 @@ computeAbsDelta4OptK <- function(nmf.exp) {
 #'
 #' @examples
 computeCoefVar <- function(matrix) {
-  apply(matrix, 1, function(r) sd(r)/mean(r))
+  apply(matrix, 1, function(r) sd(r) / mean(r))
 }
 
 #' Perform Kmeans on rows of a matrix to classify them into column (singature) combinations
@@ -753,14 +767,15 @@ performRowKmeans <- function(matrix) {
     x.trans <- sigmoidTransform(x)
     k.cluster <- kmeans(x.trans, 2)
     d <- dist(as.data.frame(x.trans))
-    sil.mean <- mean(silhouette(k.cluster$cluster, d)[,3])
-    cluster.deltaMean <- mean(x[k.cluster$cluster == 1]) - mean(x[k.cluster$cluster == 2])
+    sil.mean <- mean(silhouette(k.cluster$cluster, d)[, 3])
+    cluster.deltaMean <- mean(x[k.cluster$cluster == 1]) -
+      mean(x[k.cluster$cluster == 2])
     return(list(centers = t(k.cluster$centers),
                 silmean = sil.mean,
-                explainedVar = k.cluster$betweenss/k.cluster$totss,
-                oddsVar = sum(k.cluster$withinss)/k.cluster$betweenss,
+                explainedVar = k.cluster$betweenss / k.cluster$totss,
+                oddsVar = sum(k.cluster$withinss) / k.cluster$betweenss,
                 attribution = k.cluster$cluster,
-                deltaMean = cluster.deltaMean)) 
+                deltaMean = cluster.deltaMean))
   })
   return(k.row)
 }
@@ -784,40 +799,47 @@ computeFeatureStats <- function(nmf.exp, var.thres = 0.25) {
   # Extract mean silhouette width for each row.
   k.silmean <- unlist(lapply(k.row, function(r) r$silmean))
   # Compute delta between cluster centers (transformed data!)
-  k.deltaCenter <- unlist(lapply(k.row, function(r) r$centers[1] - r$centers[2]))
+  k.deltaCenter <-
+    unlist(lapply(k.row, function(r) r$centers[1] - r$centers[2]))
   # Extract difference of cluster means
   k.deltaMean <- unlist(lapply(k.row, function(r) r$deltaMean))
   # Extract Signature combinations generated by k-means
   k.attribution <- lapply(k.row, function(r) abs(r$attribution))
   k.attribution <- do.call(rbind, k.attribution)
-  k.ids <- apply(k.attribution, 1, function(r) paste(r, collapse = ''))
+  k.ids <- apply(k.attribution, 1, function(r) paste(r, collapse = ""))
   # Determine regions which contribute to all signatures.
   k.varCoef <- computeCoefVar(W)
   all.signature <- which(k.varCoef < var.thres)
-  k.ids[all.signature] <- gsub('2', '1', k.ids[all.signature])
+  k.ids[all.signature] <- gsub("2", "1", k.ids[all.signature])
   # Set FeatureStats
-  feature.stats <- DataFrame('cluster' = k.ids, 
-                             'deltaCenters' = k.deltaCenter,
-                             'deltaMean' = k.deltaMean,
-                             'explainedVar' = k.explainedVar,
-                             'oddsVar' = k.oddsVar, 
-                             'coefVar' = k.varCoef,
-                             'meanSil' = k.silmean)
+  feature.stats <- DataFrame("cluster" = k.ids,
+                             "deltaCenters" = k.deltaCenter,
+                             "deltaMean" = k.deltaMean,
+                             "explainedVar" = k.explainedVar,
+                             "oddsVar" = k.oddsVar,
+                             "coefVar" = k.varCoef,
+                             "meanSil" = k.silmean)
   # Map reverse cluster definitions to each other,
-  # including sign change for delta means 
+  # including sign change for delta means
   ids <- sort(unique(k.ids))[-1]
-  ids1 <- ids[1:(length(ids)/2)]
-  ids2 <-  gsub('0', '2', gsub('2', '1', gsub('1', '0', ids1)))
-  conv.id <- data.frame('id1' = ids1, 'id2' = ids2)
+  ids1 <- ids[1:(length(ids) / 2)]
+  ids2 <-  gsub("0", "2", gsub("2", "1", gsub("1", "0", ids1)))
+  conv.id <- data.frame("id1" = ids1, "id2" = ids2)
   i.conv <- match(feature.stats$cluster, conv.id$id2)
-  feature.stats$cluster[!is.na(i.conv)] <- as.character(conv.id$id1[i.conv[!is.na(i.conv)]])
-  feature.stats$deltaMean[!is.na(i.conv)] <- -1*feature.stats$deltaMean[!is.na(i.conv)]
-  feature.stats$deltaCenters[!is.na(i.conv)] <- -1*feature.stats$deltaCenters[!is.na(i.conv)]
+  feature.stats$cluster[!is.na(i.conv)] <-
+    as.character(conv.id$id1[i.conv[!is.na(i.conv)]])
+  feature.stats$deltaMean[!is.na(i.conv)] <-
+    (-1) * feature.stats$deltaMean[!is.na(i.conv)]
+  feature.stats$deltaCenters[!is.na(i.conv)] <-
+    (-1) * feature.stats$deltaCenters[!is.na(i.conv)]
   # Re-write cluster ids in a more useful binary code
-  i <- which(feature.stats$deltaCenters > 0 & grepl(feature.stats$cluster, pattern = '2'))
-  feature.stats$cluster[i] <- gsub('2', '0', feature.stats$cluster[i])
-  i <- which(feature.stats$deltaCenters < 0 & grepl(feature.stats$cluster, pattern = '2'))
-  feature.stats$cluster[i] <- gsub('2', '1', gsub('1', '0', feature.stats$cluster[i]))
+  i <- which(feature.stats$deltaCenters > 0 &
+               grepl(feature.stats$cluster, pattern = "2"))
+  feature.stats$cluster[i] <- gsub("2", "0", feature.stats$cluster[i])
+  i <- which(feature.stats$deltaCenters < 0 &
+               grepl(feature.stats$cluster, pattern = "2"))
+  feature.stats$cluster[i] <-
+    gsub("2", "1", gsub("1", "0", feature.stats$cluster[i]))
   # Add featureStats to NMF experiment
   nmf.exp <- setFeatureStats(nmf.exp, feature.stats)
   return(nmf.exp)
@@ -834,16 +856,16 @@ computeFeatureStats <- function(nmf.exp, var.thres = 0.25) {
 getIndex4SignatureCombs <- function(k.ids) {
   # Get for all signature combinations corresponding regions.
   ids <- sort(unique(k.ids))[-1]
-  n.ids <- length(ids)+1
-  i.regions <- lapply(1:(n.ids/2), function(i) {
+  n.ids <- length(ids) + 1
+  i.regions <- lapply(1:(n.ids / 2), function(i) {
     sub.id <- ids[c(i, n.ids - i)]
-    i.region <- which(k.ids%in%sub.id)
+    i.region <- which(k.ids %in% sub.id)
     return(i.region)
   })
-  names(i.regions) <- ids[1:(n.ids/2)]
+  names(i.regions) <- ids[1:(n.ids / 2)]
   # Get regions for all signature id.
   allSig.id <- sort(unique(k.ids))[1]
-  i.regions[[allSig.id]] <- which(k.ids%in%allSig.id)
+  i.regions[[allSig.id]] <- which(k.ids %in% allSig.id)
   return(i.regions)
 }
 
@@ -859,13 +881,14 @@ getIndex4SignatureCombs <- function(k.ids) {
 computeMeanDiff4SignatureCombs <- function(W, i.regions) {
   # Compute Row mean diff between Cluster 1 and 2.
   w.diffs <- lapply(1:length(i.regions), function(i) {
-    w <- W[i.regions[[i]],]
-    if (!grepl(names(i.regions)[i], pattern = '2')) {
+    w <- W[i.regions[[i]], ]
+    if (!grepl(names(i.regions)[i], pattern = "2")) {
       w.diff <- rowMean(w)
     } else {
-      signature.comb <- as.numeric(unlist(strsplit(names(i.regions)[[i]], split = '')))
-      w.mean1 <- rowMean(w[,which(signature.comb == 1)])
-      w.mean2 <- rowMean(w[,which(signature.comb == 2)])
+      signature.comb <-
+        as.numeric(unlist(strsplit(names(i.regions)[[i]], split = "")))
+      w.mean1 <- rowMean(w[, which(signature.comb == 1)])
+      w.mean2 <- rowMean(w[, which(signature.comb == 2)])
       w.diff <- w.mean1 - w.mean2
     }
     return(w.diff)
@@ -889,9 +912,9 @@ getSignatureCombCounts <- function(i.regions, w.diffs) {
     n.peak2 <- sum(w.diffs[[region.n]] < 0)
     n.peak <- c(n.peak1, n.peak2)
     n.peak <- melt(n.peak)
-    n.peak$clusterId <- c('1', '2')
+    n.peak$clusterId <- c("1", "2")
     n.peak$sigCombId <- region.n
-    return(n.peak) 
+    return(n.peak)
   })
   n.peaks <- do.call(rbind, n.peaks)
   return(n.peaks)
@@ -917,23 +940,24 @@ getSignatureCombCounts <- function(i.regions, w.diffs) {
 normalizeW <- function(nmf.exp){
   # account for WMatrixList and HMatrixList
   all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
-    k_list <- lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
-      tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
-      tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
-      normFactor <- colSums(tempW)
-      # catch errors associated with NaNs in W or H
-      if (any(is.nan(normFactor))){
-        return(list(W = tempW,
-                    H = tempH))
-      }else{
-        newSigs <- as.matrix(normalize_df_per_dim(tempW, 2))
-        newExpo <- tempH * normFactor
-        #newV <- newSigs %*% newExpo
-        #oldV <- tempW %*% tempH
-        return(list(W = newSigs,
-                    H = newExpo)) 
-      }
-    })
+    k_list <- 
+      lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
+        tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+        tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+        normFactor <- colSums(tempW)
+        # catch errors associated with NaNs in W or H
+        if (any(is.nan(normFactor))){
+          return(list(W = tempW,
+                      H = tempH))
+        }else{
+          newSigs <- as.matrix(normalize_df_per_dim(tempW, 2))
+          newExpo <- tempH * normFactor
+          #newV <- newSigs %*% newExpo
+          #oldV <- tempW %*% tempH
+          return(list(W = newSigs,
+                      H = newExpo))
+        }
+      })
     names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
     return(k_list)
   })
@@ -950,7 +974,7 @@ normalizeW <- function(nmf.exp){
     })
   })
   nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
-  return(nmf.exp)  
+  return(nmf.exp)
 }
 
 #' Normalize the signatures matrix (H)
@@ -972,16 +996,16 @@ normalizeW <- function(nmf.exp){
 normalizeH <- function(nmf.exp){
   # account for WMatrixList and HMatrixList
   all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
-    k_list <- lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
-      tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
-      tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
-      normFactor <- rowSums(tempH)
-      
-      newExpo <- as.matrix(normalize_df_per_dim(tempH, 1))
-      newSigs <- tempW * normFactor
-      return(list(W = newSigs,
-                  H = newExpo))
-    })
+    k_list <-
+      lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
+        tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+        tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+        normFactor <- rowSums(tempH)
+        newExpo <- as.matrix(normalize_df_per_dim(tempH, 1))
+        newSigs <- tempW * normFactor
+        return(list(W = newSigs,
+                    H = newExpo))
+      })
     names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
     return(k_list)
   })
@@ -998,7 +1022,7 @@ normalizeH <- function(nmf.exp){
     })
   })
   nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
-  return(nmf.exp)  
+  return(nmf.exp)
 }
 
 #' Regularize the signatures matrix (H)
@@ -1019,16 +1043,16 @@ normalizeH <- function(nmf.exp){
 regularizeH <- function(nmf.exp){
   # account for WMatrixList and HMatrixList
   all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
-    k_list <- lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
-      tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
-      tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
-      normFactor <- rowMax(tempH)
-      
-      newExpo <- tempH / normFactor
-      newSigs <- tempW * normFactor
-      return(list(W = newSigs,
-                  H = newExpo))
-    })
+    k_list <-
+      lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
+        tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+        tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
+        normFactor <- rowMax(tempH)
+        newExpo <- tempH / normFactor
+        newSigs <- tempW * normFactor
+        return(list(W = newSigs,
+                    H = newExpo))
+      })
     names(k_list) <- names(WMatrixList(nmf.exp)[[k_ind]])
     return(k_list)
   })
@@ -1045,7 +1069,7 @@ regularizeH <- function(nmf.exp){
     })
   })
   nmf.exp <- setHMatrixList(nmf.exp, thisHMatrixList)
-  return(nmf.exp)  
+  return(nmf.exp)
 }
 
 #' Merge two objects of type nmfExperiment
@@ -1062,7 +1086,7 @@ regularizeH <- function(nmf.exp){
 #'
 #' @examples
 #'  NULL
-#'  
+#'
 merge.nmf <- function(in_nmf1, 
                       in_nmf2,
                       rerunStats = TRUE,
@@ -1073,13 +1097,13 @@ merge.nmf <- function(in_nmf1,
      length(assays(in_nmf1)) == length(assays(in_nmf2))){
     if(verbose) cat("Bratwurst:::merge.nmf::verbose:Features of the two",
                     "input data structures match.\n")
-    assayLogicVector <- 
+    assayLogicVector <-
       unlist(lapply(seq_along(assays(in_nmf1)), function(current_ind){
         temp1 <- assays(in_nmf1)[[current_ind]]
         temp2 <- assays(in_nmf2)[[current_ind]]
         all(temp1 == temp2)
       }))
-    if(all(assayLogicVector) & 
+    if(all(assayLogicVector) &
        all(names(HMatrixList(in_nmf1)) == names(HMatrixList(in_nmf2))) &
        all(names(WMatrixList(in_nmf1)) == names(WMatrixList(in_nmf2)))){
       if(verbose) cat("Bratwurst:::merge.nmf::verbose:Assays of the two",
@@ -1092,21 +1116,21 @@ merge.nmf <- function(in_nmf1,
                       "HMatrixList.\n")
       temp_list <-
         lapply(names(HMatrixList(in_nmf1)), function(currentRank){
-          c(HMatrixList(in_nmf1, k = currentRank), 
+          c(HMatrixList(in_nmf1, k = currentRank),
             HMatrixList(in_nmf2, k = currentRank))
         })
       names(temp_list) <- names(HMatrixList(in_nmf1))
-      merged.nmf.exp <- setHMatrixList(merged.nmf.exp, temp_list)  
+      merged.nmf.exp <- setHMatrixList(merged.nmf.exp, temp_list)
       ## merge WMatrixList
       if(verbose) cat("Bratwurst:::merge.nmf::verbose:Concatenate",
                       "WMatrixList.\n")
       temp_list <-
         lapply(names(WMatrixList(in_nmf1)), function(currentRank){
-          c(WMatrixList(in_nmf1, k = currentRank), 
+          c(WMatrixList(in_nmf1, k = currentRank),
             WMatrixList(in_nmf2, k = currentRank))
         })
       names(temp_list) <- names(WMatrixList(in_nmf1))
-      merged.nmf.exp <- setWMatrixList(merged.nmf.exp, temp_list)  
+      merged.nmf.exp <- setWMatrixList(merged.nmf.exp, temp_list)
       ## merge FrobError
       if(verbose) cat("Bratwurst:::merge.nmf::verbose:Concatenate",
                       "FrobError.\n")
@@ -1157,38 +1181,39 @@ merge.nmf <- function(in_nmf1,
 #' @export
 #'
 #' @examples
-#' 
-computeSignatureSpecificFeatures <- function(nmf.exp, rowDataId = 3){ 
-  if (length(OptK(nmf.exp)) == 0){ 
-    stop("You need to first define an optimal k before being able to compute signature 
-         specific features!")
-  }else{
-    if (nrow(FeatureStats(nmf.exp)) == 0){ 
+#'
+computeSignatureSpecificFeatures <- function(nmf.exp, rowDataId = 3){
+  if (length(OptK(nmf.exp)) == 0){
+    stop("You need to first define an optimal k before being able to compute
+           signature specific features!")
+  } else {
+    if (nrow(FeatureStats(nmf.exp)) == 0){
       message("Computing feature stats...")
       nmf.exp <- computeFeatureStats(nmf.exp)
-    }   
+    }
     fstats <- FeatureStats(nmf.exp)
     # identify unique cluster membership strings
-    clusterMemberships <- sapply(unique(as.character(fstats$cluster)), 
-                                 function (x) lengths(regmatches(x, gregexpr("1", x))))
-    sigSpecClusters <- sort(names(clusterMemberships[which(clusterMemberships == 1)]), 
-                            decreasing = TRUE)
-    
-    if (class(rowData(nmf.exp)[,1]) %in% c("GRanges", "GInteractions", 
+    clusterMemberships <-
+      sapply(unique(as.character(fstats$cluster)),
+             function (x) lengths(regmatches(x, gregexpr("1", x))))
+    sigSpecClusters <-
+      sort(names(clusterMemberships[which(clusterMemberships == 1)]),
+           decreasing = TRUE)
+
+    if (class(rowData(nmf.exp)[, 1]) %in% c("GRanges", "GInteractions",
                                            "GenomicInteractions")){
       signatureSpecificFeatures <- lapply(sigSpecClusters, function(ssc){
-        features <- rowData(nmf.exp)[,1][which(fstats$cluster == ssc)]
+        features <- rowData(nmf.exp)[, 1][which(fstats$cluster == ssc)]
         return(features)
-      })  
+      })
     }else{
       signatureSpecificFeatures <- lapply(sigSpecClusters, function(ssc){
         features <- rowData(nmf.exp)[, rowDataId][which(fstats$cluster == ssc)]
         return(features)
-      })  
-    }   
+      })
+    }
     names(signatureSpecificFeatures) <- sigSpecClusters
     nmf.exp@SignatureSpecificFeatures <- signatureSpecificFeatures
-    return(nmf.exp) 
+    return(nmf.exp)
   }
 }
-

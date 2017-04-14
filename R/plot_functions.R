@@ -10,16 +10,18 @@
 #'
 #' @examples
 science_theme <- function() {
-  science_theme <- theme(panel.grid.major = element_line(size = 0.5, color = "grey"), 
-                         axis.line = element_line(size = 0.7, color = "black"),
-                         text = element_text(size = 14)) 
-  science_theme <- science_theme + background_grid(major = "xy", minor = "none")
+  science_theme <-
+    theme(panel.grid.major = element_line(size = 0.5, color = "grey"),
+          axis.line = element_line(size = 0.7, color = "black"),
+          text = element_text(size = 14))
+  science_theme <- science_theme +
+    background_grid(major = "xy", minor = "none")
   return(science_theme)
 }
 
 #' Universal ploting function for Optimal K Statistics
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return
 #' 
@@ -31,28 +33,24 @@ science_theme <- function() {
 #' @examples
 plotKStats <- function(nmf.exp) {
   frobError.df <- melt(as.data.frame(FrobError(nmf.exp)))
-  frobError.df[,1] <- factor(gsub('X', '', frobError.df[,1]))
-  frobError.df <- data.frame('k' = frobError.df[,1], 
-                             'variable' = 'FrobError',
-                             'value' = frobError.df[,2])
-  optKStats.df <- melt(as.data.frame(OptKStats(nmf.exp)), id.vars = 'k')
-  
-  meanError.df <- optKStats.df[optKStats.df$variable == 'mean',]
+  frobError.df[, 1] <- factor(gsub("X", "", frobError.df[, 1]))
+  frobError.df <- data.frame("k" = frobError.df[, 1],
+                             "variable" = "FrobError",
+                             "value" = frobError.df[, 2])
+  optKStats.df <- melt(as.data.frame(OptKStats(nmf.exp)), id.vars = "k")
+  meanError.df <- optKStats.df[optKStats.df$variable == "mean", ]
   meanError.df$variable <- unique(frobError.df$variable)
   plot.vars <- as.character(unique(optKStats.df$variable)[-1:-3])
-  optKStats.df <- optKStats.df[optKStats.df$variable%in%plot.vars,]
+  optKStats.df <- optKStats.df[optKStats.df$variable %in% plot.vars, ]
   optKStats.df <- rbind(frobError.df, optKStats.df)
   optKStats.df$k <- as.numeric(as.character(optKStats.df$k))
-  
-  
-  
-  gg.optK <- ggplot() + geom_point(data = optKStats.df, aes(x=k, y=value), 
-                                   col = 'black', size = 0.75)
+  gg.optK <- ggplot() + geom_point(data = optKStats.df, aes(x = k, y = value),
+                                   col = "black", size = 0.75)
   gg.optK <- gg.optK + geom_point(data = meanError.df,
-                                  aes(x=k, y=value), col = 'red')
-  gg.optK <- gg.optK + facet_wrap(~variable, scales = 'free_y')
-  gg.optK <- gg.optK + xlab('K') + ylab('') + theme_bw() + science_theme()
-  gg.optK <- gg.optK + theme(strip.background	= element_rect(fill = 'white'))
+                                  aes(x = k, y = value), col = "red")
+  gg.optK <- gg.optK + facet_wrap(~variable, scales = "free_y")
+  gg.optK <- gg.optK + xlab("K") + ylab("") + theme_bw() + science_theme()
+  gg.optK <- gg.optK + theme(strip.background	= element_rect(fill = "white"))
   return(gg.optK)
 }
 
@@ -71,21 +69,24 @@ plotRankedFrobErrors <- function(nmf.exp) {
   # Prepare frob error data for plotting.
   frobErrorRanks.df <- apply(FrobError(nmf.exp), 2, function(matrix.col) {
     ranks <- order(matrix.col, decreasing = T)
-    rank.df <- data.frame(rank = 1:length(ranks), 
+    rank.df <- data.frame(rank = 1:length(ranks),
                           froberror = matrix.col[ranks])
     return(rank.df)
   })
-  frobErrorRanks.df <- melt(frobErrorRanks.df, value.name = 'frobError',
-                            id.vars = 'rank')
-  grid.labels <- paste('K =', frobErrorRanks.df$L1)
+  frobErrorRanks.df <- melt(frobErrorRanks.df, value.name = "frobError",
+                            id.vars = "rank")
+  grid.labels <- paste("K =", frobErrorRanks.df$L1)
   frobErrorRanks.df$L1 <- factor(grid.labels, levels = unique(grid.labels))
   # Plot ranked frob error
   gg.rankedFrobError <- ggplot(frobErrorRanks.df, aes(x = rank, y = frobError))
-  gg.rankedFrobError <- gg.rankedFrobError + geom_line(col = 'black', size = 0.75)
-  gg.rankedFrobError <- gg.rankedFrobError + facet_wrap(~L1, scales = 'free')
-  gg.rankedFrobError <- gg.rankedFrobError + xlab('Error rank') + ylab('Frobenius error')
+  gg.rankedFrobError <-
+    gg.rankedFrobError + geom_line(col = "black", size = 0.75)
+  gg.rankedFrobError <- gg.rankedFrobError + facet_wrap(~L1, scales = "free")
+  gg.rankedFrobError <-
+    gg.rankedFrobError + xlab("Error rank") + ylab("Frobenius error")
   gg.rankedFrobError <- gg.rankedFrobError + theme_bw() + theme_cowplot()
-  gg.rankedFrobError <- gg.rankedFrobError + theme(strip.background = element_rect(fill = 'white'))
+  gg.rankedFrobError <- gg.rankedFrobError +
+    theme(strip.background = element_rect(fill = "white"))
   return(gg.rankedFrobError)
 }
 
@@ -105,7 +106,8 @@ getColorMap <- function(matrix.list) {
   if(matrix.min > 0) {
     col.map <- colorRamp2(c(0, matrix.max), c("white", "red"))
   } else {
-    col.map <- colorRamp2(c(matrix.min, 0, matrix.max), c("blue", "white", "red"))
+    col.map <- colorRamp2(c(matrix.min, 0, matrix.max),
+                          c("blue", "white", "red"))
   }
   return(col.map)
 }
@@ -121,23 +123,23 @@ getColorMap <- function(matrix.list) {
 #'
 #' @examples
 getColorAnno <- function(col.data) {
-  # Define own palate 
-  own.cols <- c('red', 'darkblue', 'orange', 'darkgreen')
+  # Define own palate
+  own.cols <- c("red", "darkblue", "orange", "darkgreen")
   # Define usable qualitative colour palates from RColorBreweer
-  qual.colPals <- sort(c('Dark2' = 8, 'Paired' = 12, 'Pastel1' = 9,
-                         'Pastel2' = 8, 'Set1' = 9, 'Set2' = 8, 'Set3' = 12, 
-                         'own' = length(own.cols)))  # 'Accent' = 8,
+  qual.colPals <- sort(c("Dark2" = 8, "Paired" = 12, "Pastel1" = 9,
+                         "Pastel2" = 8, "Set1" = 9, "Set2" = 8, "Set3" = 12,
+                         "own" = length(own.cols)))  # "Accent" = 8,
   # Build color annotation for complexHeatmap
   anno.colours <- lapply(seq(2, ncol(col.data)), function(i) {
-    n.levels <- length(unique(col.data[,i]))
+    n.levels <- length(unique(col.data[, i]))
     col.pal <- names(qual.colPals)[which(qual.colPals > n.levels)[i - 1]]
-    if( col.pal != 'own' ) {
+    if( col.pal != "own" ) {
       anno.col <- brewer.pal(qual.colPals[col.pal], col.pal)
       anno.col <- anno.col[1:n.levels]
     } else {
       anno.col <- own.cols[1:n.levels]
     }
-    names(anno.col) <- unique(col.data[,i])
+    names(anno.col) <- unique(col.data[, i])
     return(anno.col)
   })
   names(anno.colours) <- colnames(col.data)[2:ncol(col.data)]
@@ -158,28 +160,24 @@ getColorAnno <- function(col.data) {
 plotHMatrix <- function(nmf.exp, k = 2){
   # Get matrix
   m <- HMatrix(nmf.exp, k = k)
-  
   # Get signature names
   signature.names <- getSignatureNames(nmf.exp, k)
-  signature.names <- paste('Signature:', signature.names, sep = '\n')
-  
+  signature.names <- paste("Signature:", signature.names, sep = "\n")
   # Define colormap for heatmaps
   col.map <- getColorMap(m)
-  
-  # Create heatmap annotation 
+  # Create heatmap annotation
   n.cols <- ncol(colData(nmf.exp))
-  colnames(m) <- colData(nmf.exp)[,1]
+  colnames(m) <- colData(nmf.exp)[, 1]
   rownames(m) <- signature.names
   col.anno <- getColorAnno(colData(nmf.exp))
-  heat.anno <- HeatmapAnnotation(colData(nmf.exp)[,2:n.cols], col = col.anno)
-  
-  H.heatmap <- Heatmap(matrix = m, 
+  heat.anno <- HeatmapAnnotation(colData(nmf.exp)[, 2:n.cols], col = col.anno)
+  H.heatmap <- Heatmap(matrix = m,
                        col = col.map,
                        cluster_rows = F,
                        top_annotation = heat.anno,
-                       clustering_distance_rows = 'pearson',
-                       heatmap_legend_param = list(color_bar = 'continuous'),
-                       column_title = sprintf('H-Matrix for K = %s', k))
+                       clustering_distance_rows = "pearson",
+                       heatmap_legend_param = list(color_bar = "continuous"),
+                       column_title = sprintf("H-Matrix for K = %s", k))
   return(H.heatmap)
 }
 
@@ -199,26 +197,23 @@ plotHMatrix <- function(nmf.exp, k = 2){
 #' @export
 #'
 #' @examples
-plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL, trans = F,
-                                   cluster_columns = F, show.row = F) {
+plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL,
+                                   trans = F, cluster_columns = F,
+                                   show.row = F) {
   # Get Matrix List
   matrix.list <- HMatrix(nmf.exp)
-  
   if(trans) matrix.list <- lapply(matrix.list, t)
-  
   # Define colormap for heatmaps
   col.map <- getColorMap(matrix.list)
-  
   # Create annotations
   heat.anno <- HeatmapAnnotation(colData(nmf.exp))
-  
   # Plot heatmaps
-  heatmap.list <- Heatmap(matrix.list[[1]], 
+  heatmap.list <- Heatmap(matrix.list[[1]],
                           col = col.map,
                           cluster_columns = F,
                           show_row_names = show.row,
-                          clustering_distance_rows = 'pearson',
-                          heatmap_legend_param = list(color_bar = 'continuous'),
+                          clustering_distance_rows = "pearson",
+                          heatmap_legend_param = list(color_bar = "continuous"),
                           #column_title = colData(nmf.exp))
                           column_title = titles[1])
   for (i in 2:length(matrix.list)){
@@ -226,8 +221,8 @@ plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL, trans =
                                            col = col.map,
                                            cluster_columns = F,
                                            show_row_names = show.row,
-                                           clustering_distance_rows = 'pearson',
-                                           show_heatmap_legend = FALSE, 
+                                           clustering_distance_rows = "pearson",
+                                           show_heatmap_legend = FALSE,
                                            column_title = titles[i])
   }
   return(heatmap.list)
@@ -248,63 +243,59 @@ plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL, trans =
 #' @import cowplot
 #'
 #' @examples
-plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = 'blue') {
+plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = "blue") {
   # Get number of features per signature combination and create a barplot.
-  n.peaks <- as.data.frame(table(FeatureStats(nmf.exp)[,1]))
-  colnames(n.peaks) <- c('sigCombId', 'value')
-  
+  n.peaks <- as.data.frame(table(FeatureStats(nmf.exp)[, 1]))
+  colnames(n.peaks) <- c("sigCombId", "value")
   # Build annotation matrix and order it
-  anno.matrix <- as.data.frame(do.call(rbind, strsplit(as.character(n.peaks$sigCombId), split = '')))
+  anno.matrix <-
+    as.data.frame(do.call(rbind, strsplit(as.character(n.peaks$sigCombId),
+                                          split = "")))
   cluster.matrix <- apply(anno.matrix, 1, as.numeric)
   # If only signatures should be plotted, filter here.
   if(!sig.combs) {
     i.keep <- which(apply(cluster.matrix, 2, sum) == 1)
-    anno.matrix <- anno.matrix[i.keep,]
-    cluster.matrix <- cluster.matrix[,i.keep]
-    n.peaks <- n.peaks[i.keep,]
+    anno.matrix <- anno.matrix[i.keep, ]
+    cluster.matrix <- cluster.matrix[, i.keep]
+    n.peaks <- n.peaks[i.keep, ]
   }
   i.order <- unlist(orderBinary(cluster.matrix))
-  anno.matrix <- t(anno.matrix)[,i.order]
+  anno.matrix <- t(anno.matrix)[, i.order]
   colnames(anno.matrix) <- 1:ncol(anno.matrix)
   rownames(anno.matrix) <- signature.names
   anno.matrix <- melt(anno.matrix)
-  
   # Reorder number of features data.frame
-  n.peaks$sigCombId <- factor(n.peaks$sigCombId, levels = n.peaks$sigCombId[i.order])
-  
-  # Prepare heatmap annotation plot for signature feature plot 
-  gg.heat <- ggplot(anno.matrix, aes(x = Var2, y= Var1, fill = value)) 
-  gg.heat <- gg.heat + geom_tile(col = 'black', size = 0.5)
-  gg.heat <- gg.heat + scale_fill_manual(values = c('white', 'black'))
-  gg.heat <- gg.heat + ylab('Signatures') + xlab ('Signature combinations')
-  gg.heat <- gg.heat + scale_x_discrete(expand = c(10^-2, 10^-2)) 
-  gg.heat <- gg.heat + scale_y_discrete(expand = c(0,0)) + labs(x=NULL)
-  gg.heat <- gg.heat + theme_bw() + theme_cowplot() + theme(legend.position = 'none',
-                                                            axis.ticks = element_blank(),
-                                                            axis.text.x = element_blank(),
-                                                            axis.line = element_blank(),
-                                                            panel.grid = element_blank(),
-                                                            panel.border = element_blank())
-  
-  # Prepare barplot for signature feature plot 
-  gg.bar <- ggplot(n.peaks, aes(x = sigCombId, y = value)) #, fill = clusterId)) 
-  gg.bar <- gg.bar + geom_bar(colour='black', fill = col, stat='identity', 
-                              position=position_dodge())
-  gg.bar <- gg.bar + xlab('') + ylab('#Features')
+  n.peaks$sigCombId <- factor(n.peaks$sigCombId,
+                              levels = n.peaks$sigCombId[i.order])
+  # Prepare heatmap annotation plot for signature feature plot
+  gg.heat <- ggplot(anno.matrix, aes(x = Var2, y = Var1, fill = value))
+  gg.heat <- gg.heat + geom_tile(col = "black", size = 0.5)
+  gg.heat <- gg.heat + scale_fill_manual(values = c("white", "black"))
+  gg.heat <- gg.heat + ylab("Signatures") + xlab ("Signature combinations")
+  gg.heat <- gg.heat + scale_x_discrete(expand = c(10^(-2), 10^(-2)))
+  gg.heat <- gg.heat + scale_y_discrete(expand = c(0, 0)) + labs(x = NULL)
+  gg.heat <- gg.heat + theme_bw() + theme_cowplot() +
+    theme(legend.position = "none", axis.ticks = element_blank(),
+          axis.text.x = element_blank(), axis.line = element_blank(),
+          panel.grid = element_blank(), panel.border = element_blank())
+  # Prepare barplot for signature feature plot
+  gg.bar <- ggplot(n.peaks, aes(x = sigCombId, y = value)) #, fill = clusterId))
+  gg.bar <- gg.bar + geom_bar(colour = "black", fill = col, stat = "identity",
+                              position = position_dodge())
+  gg.bar <- gg.bar + xlab("") + ylab("#Features")
   gg.bar <- gg.bar + theme_bw() + theme_cowplot()
-  gg.bar <- gg.bar + scale_x_discrete(expand = c(10^-2,10^-2)) 
-  gg.bar <- gg.bar + labs(x=NULL)
+  gg.bar <- gg.bar + scale_x_discrete(expand = c(10^(-2), 10^(-2)))
+  gg.bar <- gg.bar + labs(x = NULL)
   gg.bar <- gg.bar + theme(axis.ticks.x = element_blank(),
                            axis.text.x = element_blank())
-  
   # Combine annotation heatmap and barplot
-  gg.feature <- plot_grid(gg.bar, gg.heat, nrow = 2, align = 'v')
+  gg.feature <- plot_grid(gg.bar, gg.heat, nrow = 2, align = "v")
   return(gg.feature)
 }
 
-#==============================================================================#
-#  Riverplot - similarities between signatures at different ranks - FUNCTIONS  #
-#==============================================================================#
+#=============================================================================#
+#  Riverplot - similarities between signatures at different ranks - FUNCTIONS #
+#=============================================================================#
 #' Find non-negative exposures of one matrix in another matrix
 #'
 #' @param B of A * X = B
@@ -317,7 +308,7 @@ plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = 'blue') {
 nnls_sol <- function(B, A) {
   X <- matrix(0, nrow = ncol(B), ncol = ncol(A))
   for(i in 1:ncol(B))
-    X[i,] <- coef(nnls(A,B[,i]))
+    X[i, ] <- coef(nnls(A, B[, i]))
   X
 }
 
@@ -336,20 +327,20 @@ nnls_sol <- function(B, A) {
 yNodeCoords <- function(nodes, edges,
                         rank_flag = FALSE,
                         scale_factor = 1,
-                        start_coords = c(1,2),
+                        start_coords = c(1, 2),
                         edgeWeightColName = "rescaled",
-                        scale_fun = function(x){return(x)}){
-  ranks <- unique(nodes[,2])
+                        scale_fun = function(x) { return(x) }){
+  ranks <- unique(nodes[, 2])
   node_ypos <- rep(1, nrow(nodes))
-  names(node_ypos) <- nodes[,1]
-  node_ypos[c(1,2)] <- start_coords
+  names(node_ypos) <- nodes[, 1]
+  node_ypos[c(1, 2)] <- start_coords
   for(current_rank in ranks[-1]){
     #for(current_rank in c(3:10)){
-    my_nodes <- as.character(nodes[which(nodes[,2] == current_rank),1])
+    my_nodes <- as.character(nodes[which(nodes[, 2] == current_rank), 1])
     yCoords <- lapply(my_nodes, function(current_node){
-      current_edges <- edges[which(as.character(edges[,2]) == current_node),]
-      yCoord <- sum(scale_fun(current_edges[,edgeWeightColName]) *
-                    node_ypos[as.character(current_edges[,1])])
+      current_edges <- edges[which(as.character(edges[, 2]) == current_node), ]
+      yCoord <- sum(scale_fun(current_edges[, edgeWeightColName]) *
+                    node_ypos[as.character(current_edges[, 1])])
       return(yCoord)
     })
     my_factor <- scale_factor * (current_rank / (current_rank - 1))
@@ -357,7 +348,8 @@ yNodeCoords <- function(nodes, edges,
       node_ypos[my_nodes] <- rank(unlist(yCoords), ties.method = "first")
       if(any(start_coords < 0)){
         node_ypos[my_nodes] <-
-          rank(unlist(yCoords), ties.method = "first") - 0.5 * (current_rank + 1)
+          rank(unlist(yCoords), ties.method = "first") -
+          0.5 * (current_rank + 1)
       }
     } else {
       node_ypos[my_nodes] <- my_factor * unlist(yCoords)
@@ -376,13 +368,13 @@ yNodeCoords <- function(nodes, edges,
 reorderEdges <- function(nodes, edges){
   node_ypos <- nodes$y
   names(node_ypos) <- nodes$ID
-  tempSum <- cumsum(unique(nodes[,2]))
-  offsetClasses <- c(0, tempSum[1:length(tempSum) -1])
-  offsets <- rep(offsetClasses, times = unique(nodes[,2]))
+  tempSum <- cumsum(unique(nodes[, 2]))
+  offsetClasses <- c(0, tempSum[1:length(tempSum) - 1])
+  offsets <- rep(offsetClasses, times = unique(nodes[, 2]))
   node_ranks <- node_ypos + offsets
   edgesOrder <- order(node_ranks[as.character(edges$N1)],
                       node_ranks[as.character(edges$N2)])
-  return(edges[edgesOrder,])
+  return(edges[edgesOrder, ])
 }
 
 #' Generate a riverplot object that displays the similarities between
@@ -402,27 +394,26 @@ reorderEdges <- function(nodes, edges){
 #' plot(plt, plot_area = 1, yscale = 0.6, nodewidth = 0.5)
 generateRiverplot <- function(nmf.exp, edges.cutoff = 0, useH=FALSE,
                               color=TRUE) {
-  
   if(useH)
-    W.list <- lapply(HMatrix(nmf.exp), t)    
+    W.list <- lapply(HMatrix(nmf.exp), t)
   else
     W.list <- WMatrix(nmf.exp)
   rank.max <- max(as.numeric(names(W.list)))
   rank.min <- min(as.numeric(names(W.list)))
-  
   nodes <- do.call(rbind, lapply(rank.min:rank.max, function(i) {
-    data.frame(ID=sapply(1:i, function(n) paste(i,"_S", n, sep="")),
-               x=i)
+    data.frame(ID = sapply(1:i, function(n) paste(i, "_S", n, sep = "")),
+               x = i)
   }))
-  
-  edges <- do.call(rbind, lapply(rank.min:(rank.max-1), function(i){
-    df <- data.frame(N1=rep(sapply(1:i, function(n) paste(i,"_S", n, sep="")), each=i+1),
-                     N2=rep(sapply(1:(i+1), function(n) paste(i+1,"_S", n, sep="")), time=i),
-                     Value=as.vector(t(nnls_sol(W.list[[i-1]], W.list[[i]]))))
-    df$ID = paste(df$N1, df$N2)
+  edges <- do.call(rbind, lapply(rank.min:(rank.max - 1), function(i){
+    df <- data.frame(
+      N1 = rep(sapply(1:i, function(n) paste(i, "_S", n, sep = "")),
+               each = i + 1),
+      N2 = rep(sapply(1:(i + 1), function(n) paste(i + 1, "_S", n, sep = "")),
+               time = i),
+      Value = as.vector(t(nnls_sol(W.list[[i - 1]], W.list[[i]]))))
+    df$ID <- paste(df$N1, df$N2)
     return(df)
   }))
-  
   edges_dfList <- split(edges, f = edges$N2)
   edges_vecList <- lapply(edges_dfList, function(current_df){
     norm_vec <- current_df$Value / sum(current_df$Value)
@@ -432,25 +423,21 @@ generateRiverplot <- function(nmf.exp, edges.cutoff = 0, useH=FALSE,
   edges_vec <- do.call(c, edges_vecList)
   names(edges_vec) <- unlist(lapply(edges_vecList, names))
   edges$rescaled <- edges_vec[as.character(edges$ID)]
-  
-  edges <- edges[edges$Value>edges.cutoff,]
-  
+  edges <- edges[edges$Value > edges.cutoff, ]
   nodes$y <- yNodeCoords(nodes, edges, rank_flag = TRUE,
                          start_coords = c(-0.5, 0.5),
                          edgeWeightColName = "rescaled",
-                         scale_fun = function(x){return(x^1/3)})
-  
+                         scale_fun = function(x){return(x^(1 / 3))})
   edges <- reorderEdges(nodes, edges)
-  
   if (color){
     pca <- prcomp(t(do.call(cbind, W.list)))
     pca <- apply(pca$x, 2, function(r) {
       r <- r - min(r)
       return(r / max(r))
     })
-    col <- rgb(pca[,1], pca[,2], pca[,3],0.9)
+    col <- rgb(pca[, 1], pca[, 2], pca[, 3], 0.9)
     nodes$col <- col
   }
-  ret <- makeRiver(nodes=nodes, edges=edges)
+  ret <- makeRiver(nodes = nodes, edges = edges)
   return(ret)
 }
