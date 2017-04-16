@@ -13,8 +13,8 @@ regularizeH(nmf.exp)
 A data structure of type nmfExperiment
 }
 \description{
-After row regularization of the matrix H, the inverse factors are 
-mutiplied with the columns of W in order to keep the matrix product W*H 
+After row regularization of the matrix H, the inverse factors are
+mutiplied with the columns of W in order to keep the matrix product W*H
 constant.
 }
 \examples{

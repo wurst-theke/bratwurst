@@ -7,7 +7,9 @@
 computeSignatureSpecificFeatures(nmf.exp, rowDataId = 3)
 }
 \arguments{
-\item{rowDataId}{The index of the rowData(nmf.exp) data.frame that should be used for 
+\item{nmf.exp}{A NMF experiment object}
+
+\item{rowDataId}{The index of the rowData(nmf.exp) data.frame that should be used for
 feature extraction. In case rowData(nmf.exp)[,1] is a GRanges or a related object like
 GenomicInteractions this parameter can be ignored}
 }
@@ -18,9 +20,6 @@ nmf.exp with filles SignatureSpecificFeatures container
 Compute signature specific features
 }
 \examples{
-
-}
-\references{
 
 }
 

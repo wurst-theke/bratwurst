@@ -7,8 +7,6 @@
 cosineDissMat(in.matrix, in.dimension = 2)
 }
 \arguments{
-\item{in.matrix}{}
-
 \item{in.dimension}{}
 }
 \description{

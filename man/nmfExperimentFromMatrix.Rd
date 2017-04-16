@@ -7,10 +7,6 @@
 nmfExperimentFromMatrix(matrix, row.anno = NULL, col.data = NULL)
 }
 \arguments{
-\item{matrix}{}
-
-\item{row.anno}{}
-
 \item{col.data}{}
 }
 \value{

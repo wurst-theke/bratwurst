@@ -8,10 +8,6 @@ writeTmpMatrix(matrix, tmp.path = "/tmp/nmf_tmp", sep = " ",
   binary = FALSE)
 }
 \arguments{
-\item{matrix}{}
-
-\item{tmp.path}{}
-
 \item{sep}{}
 }
 \value{

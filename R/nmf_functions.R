@@ -45,6 +45,7 @@ writeTmpMatrix <- function(matrix, tmp.path = "/tmp/nmf_tmp",
 #' @return
 #'
 #' @import SummarizedExperiment
+#' @importFrom S4Vectors DataFrame
 #' @importFrom data.table fread
 #' @export
 #'
@@ -53,24 +54,20 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                       inner.iter = 10^4, conver.test.niter = 10,
                       conver.test.stop.threshold = 40, out.dir = NULL,
                       tmp.path = "/tmp/nmf_tmp") {
-
   # Write raw matrix to tmp file
   tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, "raw"), tmp.path = tmp.path)
-
   # Define pattern to finde GPU_NMF output.
   tmp.dir <- dirname(tmpMatrix.path)
   h.pattern <- sprintf("%s_H.txt", basename(tmpMatrix.path))
   w.pattern <- sprintf("%s_W.txt", basename(tmpMatrix.path))
-
   # Check if deconv. matrix should be saved
   if(!is.null(out.dir)) dir.create(out.dir)
-
   # RUN NMF.
   dec.matrix <- lapply(k.min:k.max, function(k) {
     print(Sys.time())
     cat("Factorization rank: ", k, "\n")
     k.matrix <- lapply(1:outer.iter, function(i) {
-      if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
+      if(i %% 10 == 0) { cat("\tIteration: ", i, "\n") }
       frob.error <- 1
       while(frob.error == 1 | is.na(frob.error)){
         # VERSION 1.0
@@ -105,7 +102,6 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     return(k.matrix)
   })
   names(dec.matrix) <- k.min:k.max
-
   ### Add NMF results to summarizedExp object.
   # Frob Errors
   frob.errors <- DataFrame(getFrobError(dec.matrix))
@@ -115,7 +111,6 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
   nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
   # W-Matrix List
   nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
-
   return(nmf.exp)
 }
 
@@ -135,6 +130,7 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #' @import SummarizedExperiment
 #' @import NMF
 #' @importFrom data.table fread
+#' @importFrom S4Vectors DataFrame
 #' @importFrom RcppCNPy npyLoad
 #' @export
 #'
@@ -383,6 +379,8 @@ getWMatrixList <- function(dec.matrix) {
 #' @param dec.matrix
 #'
 #' @return
+#'
+#' @import NMF
 #'
 #' @examples
 getCpuWMatrixList <- function(cpu.nmf.list, k.min, k.max) {

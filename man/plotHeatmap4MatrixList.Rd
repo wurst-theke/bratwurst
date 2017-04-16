@@ -9,15 +9,7 @@ plotHeatmap4MatrixList(nmf.exp, H = T, W = F, titles = NULL, trans = F,
   cluster_columns = F, show.row = F)
 }
 \arguments{
-\item{titles}{}
-
-\item{trans}{}
-
-\item{cluster_columns}{}
-
 \item{show.row}{}
-
-\item{matrix.list}{}
 }
 \value{
 

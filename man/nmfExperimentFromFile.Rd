@@ -7,10 +7,6 @@
 nmfExperimentFromFile(matrix.file, rowAnno.file = NULL, colData.file = NULL)
 }
 \arguments{
-\item{matrix.file}{}
-
-\item{rowAnno.file}{}
-
 \item{colData.file}{}
 }
 \description{

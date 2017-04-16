@@ -7,8 +7,6 @@
 sigmoidTransform2(col.vector, q = 0.95)
 }
 \arguments{
-\item{col.vector}{}
-
 \item{q}{}
 }
 \description{

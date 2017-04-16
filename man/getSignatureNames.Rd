@@ -7,8 +7,6 @@
 getSignatureNames(nmf.exp, k.opt)
 }
 \arguments{
-\item{nmf.exp}{}
-
 \item{k.opt}{}
 }
 \description{

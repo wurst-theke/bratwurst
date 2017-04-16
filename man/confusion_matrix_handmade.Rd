@@ -8,12 +8,6 @@ confusion_matrix_handmade(temp_exposures_df, confusion_df, LCD_result_df,
   match_value)
 }
 \arguments{
-\item{temp_exposures_df}{}
-
-\item{confusion_df}{}
-
-\item{LCD_result_df}{}
-
 \item{match_value}{}
 }
 \description{

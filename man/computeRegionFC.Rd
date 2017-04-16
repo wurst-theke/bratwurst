@@ -7,11 +7,10 @@
 computeRegionFC(peaks, subregions, universe)
 }
 \arguments{
-\item{peaks}{}
-
-\item{subregions}{}
-
 \item{universe}{}
+}
+\value{
+
 }
 \description{
 Title

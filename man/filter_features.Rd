@@ -7,12 +7,6 @@
 filter_features(k.row, out_int, specific_signatures, genes_df)
 }
 \arguments{
-\item{k.row}{}
-
-\item{out_int}{}
-
-\item{specific_signatures}{}
-
 \item{genes_df}{}
 }
 \description{

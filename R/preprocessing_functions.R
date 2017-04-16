@@ -1,17 +1,18 @@
 #' Convert Matrix to SummarizedExperiment Object
 #'
 #'
-#' @param matrix 
-#' @param row.anno 
-#' @param col.data 
+#' @param matrix
+#' @param row.anno
+#' @param col.data
 #'
 #' @return
-#' 
+#'
+#' @import S4Vectors
 #' @import SummarizedExperiment
 #' @export
 #'
 #' @examples
-#' 
+#'
 nmfExperimentFromMatrix <- function(matrix, row.anno = NULL, col.data = NULL) {
   # Convert to matrix
   if(!is.matrix(matrix)) matrix <- as.matrix(matrix)
@@ -35,9 +36,9 @@ nmfExperimentFromMatrix <- function(matrix, row.anno = NULL, col.data = NULL) {
 
 #' Reads Matrix & Annotation Files to SummarizedExperiment Object
 #'
-#' @param matrix.file 
-#' @param rowAnno.file 
-#' @param colData.file 
+#' @param matrix.file
+#' @param rowAnno.file
+#' @param colData.file
 #'
 #' @return
 #' @importFrom rtracklayer import.bed
@@ -70,7 +71,7 @@ nmfExperimentFromFile <- function(matrix.file, rowAnno.file = NULL,
 
 #' Title
 #'
-#' @param matrix 
+#' @param matrix
 #'
 #' @return
 #' @export
@@ -87,8 +88,8 @@ normalizeUpperQuartile <- function(matrix) {
 
 #' Title
 #'
-#' @param col.vector 
-#' @param q 
+#' @param col.vector
+#' @param q
 #'
 #' @return
 #' @export
@@ -102,8 +103,8 @@ sigmoidTransform <- function(col.vector, q = 0.95) {
 
 #' Title
 #'
-#' @param col.vector 
-#' @param q 
+#' @param col.vector
+#' @param q
 #'
 #' @return
 #' @export
@@ -117,7 +118,7 @@ sigmoidTransform2 <- function(col.vector, q = 0.95) {
 
 #' Title
 #'
-#' @param matrix 
+#' @param matrix
 #'
 #' @return
 #' @export
@@ -132,9 +133,11 @@ rankTransform  <- function(matrix) {
 
 #' Title
 #'
-#' @param coords 
+#' @param coords
 #'
 #' @return
+#'
+#' @import GenomicRanges
 #' @export
 #'
 #' @examples
@@ -149,7 +152,7 @@ igvCoord2Grange <- function(coords) {
 
 #' Function to order binary data matrix
 #'
-#' @param matrix 
+#' @param matrix
 #'
 #' @return
 #' @export

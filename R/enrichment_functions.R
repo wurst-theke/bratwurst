@@ -5,6 +5,8 @@
 #' @param universe
 #'
 #' @return
+#'
+#' @import GenomicRanges
 #' @export
 #'
 #' @examples
@@ -23,6 +25,8 @@ computeRegionFC <- function(peaks, subregions, universe) {
 #' @param universe
 #'
 #' @return
+#'
+#' @import GenomicRanges
 #' @export
 #'
 #' @examples
@@ -51,6 +55,8 @@ computeRegionFC4GRlist <- function(peak, subregion, universe) {
 #' @param universe
 #'
 #' @return
+#'
+#' @import GenomicRanges
 #' @export
 #'
 #' @examples
@@ -131,6 +137,9 @@ computeNES <- function(ranks, n, iter = 10^3, threads = 3) {
 #' @param universe
 #'
 #' @return
+#'
+#' @import S4Vectors
+#' @import GenomicRanges
 #' @export
 #'
 #' @examples

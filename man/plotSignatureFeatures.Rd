@@ -7,10 +7,6 @@
 plotSignatureFeatures(nmf.exp, sig.combs = T, col = "blue")
 }
 \arguments{
-\item{nmf.exp}{}
-
-\item{sig.combs}{}
-
 \item{col}{}
 }
 \value{
