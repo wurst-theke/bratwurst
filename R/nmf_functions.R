@@ -3,9 +3,9 @@
 #==============================================================================#
 #' Title
 #'
-#' @param matrix 
-#' @param tmp.path 
-#' @param sep 
+#' @param matrix
+#' @param tmp.path
+#' @param sep
 #'
 #' @return
 #'
@@ -34,16 +34,16 @@ writeTmpMatrix <- function(matrix, tmp.path = "/tmp/nmf_tmp",
 #' Title
 #'
 #' @param nmf.exp
-#' @param k.min  
-#' @param k.max 
-#' @param outer.iter 
-#' @param inner.iter  
-#' @param conver.test.niter  
-#' @param conver.test.stop.threshold 
-#' @param out.dir 
+#' @param k.min
+#' @param k.max
+#' @param outer.iter
+#' @param inner.iter
+#' @param conver.test.niter
+#' @param conver.test.stop.threshold
+#' @param out.dir
 #'
 #' @return
-#' 
+#'
 #' @import SummarizedExperiment
 #' @importFrom data.table fread
 #' @export
@@ -122,16 +122,16 @@ runNmfGpu <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
 #' Title
 #'
 #' @param nmf.exp
-#' @param k.min  
-#' @param k.max 
-#' @param outer.iter 
-#' @param inner.iter  
-#' @param conver.test.niter  
-#' @param conver.test.stop.threshold 
-#' @param out.dir 
+#' @param k.min
+#' @param k.max
+#' @param outer.iter
+#' @param inner.iter
+#' @param conver.test.niter
+#' @param conver.test.stop.threshold
+#' @param out.dir
 #'
 #' @return
-#' 
+#'
 #' @import SummarizedExperiment
 #' @import NMF
 #' @importFrom data.table fread
@@ -146,7 +146,6 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
                             w.sparsness = 0, h.sparsness = 0, gpu.id = 0,
                             seed = FALSE, binary.file.transfer = FALSE,
                             cpu = FALSE) {
-
   if(!cpu){
     # Write raw matrix to tmp file
     tmpMatrix.path <- writeTmpMatrix(assay(nmf.exp, "raw"), tmp.path = tmp.path,
@@ -155,21 +154,18 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     encoding <- "txt"
     if(binary.file.transfer)
       encoding <- "npy"
-
     # Define pattern to finde GPU_NMF output.
     tmp.dir <- dirname(tmpMatrix.path)
     h.pattern <- sprintf("%s_H.%s", basename(tmpMatrix.path), encoding)
     w.pattern <- sprintf("%s_W.%s", basename(tmpMatrix.path), encoding)
-
     # Check if deconv. matrix should be saved
     if(!is.null(out.dir)) dir.create(out.dir)
-
     # RUN NMF.
     dec.matrix <- lapply(k.min:k.max, function(k) {
       print(Sys.time())
       cat("Factorization rank: ", k, "\n")
       k.matrix <- lapply(1:outer.iter, function(i) {
-        if(i%%10 == 0) { cat("\tIteration: ", i, "\n") }
+        if(i %% 10 == 0) { cat("\tIteration: ", i, "\n") }
         frob.error <- 1
         if (seed){
           nmf.cmd <-
@@ -225,7 +221,6 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
       return(k.matrix)
     })
     names(dec.matrix) <- k.min:k.max
-
     ### Add NMF results to summarizedExp object.
     # Frob Errors
     frob.errors <- DataFrame(getFrobError(dec.matrix))
@@ -235,7 +230,6 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     nmf.exp <- setHMatrixList(nmf.exp, getHMatrixList(dec.matrix))
     # W-Matrix List
     nmf.exp <- setWMatrixList(nmf.exp, getWMatrixList(dec.matrix))
-
   } else {
     # run NMF on CPU via CRAN R package
     # cpu.nmf.list <- runNmfCpu(nmf.exp, k.min = k.min, k.max = k.max,
@@ -255,19 +249,18 @@ runNmfGpuPyCuda <- function(nmf.exp, k.min= 2, k.max = 2, outer.iter = 10,
     nmf.exp <- setWMatrixList(nmf.exp, getCpuWMatrixList(cpu.nmf.list,
                                                          k.min, k.max))
   }
-  
  return(nmf.exp)
 }
 
 #' Title
 #'
 #' @param nmf.exp
-#' @param k.min  
-#' @param k.max 
-#' @param outer.iter 
+#' @param k.min
+#' @param k.max
+#' @param outer.iter
 #'
 #' @return
-#' 
+#'
 #' @import NMF
 #'
 #' @examples
@@ -299,12 +292,12 @@ runNmfCpu <- function(nmf.exp, k.min = 2, k.max = 2, seed = FALSE, ...){
 #' Title
 #'
 #' @param nmf.exp
-#' @param k.min  
-#' @param k.max 
-#' @param outer.iter 
+#' @param k.min
+#' @param k.max
+#' @param outer.iter
 #'
 #' @return
-#' 
+#'
 #' @import NMF
 #'
 #' @examples
@@ -328,12 +321,12 @@ computeCpuFrobErrors <- function(nmf.exp, cpu.nmf.list, k.min, k.max){
 #==============================================================================#
 #                               Getter FUNCTIONS                               #
 #==============================================================================#
-#' Getter function for FrobError from NMF-GPU list 
+#' Getter function for FrobError from NMF-GPU list
 #'
-#' @param dec.matrix 
+#' @param dec.matrix
 #'
 #' @return
-#' 
+#'
 #' @importFrom reshape2 melt
 #' @importFrom reshape2 dcast
 #'
@@ -344,7 +337,8 @@ getFrobError <- function(dec.matrix) {
   })
   frob.errorMatrix <- melt(frob.errorList)
   frob.errorMatrix <- dcast(frob.errorMatrix, L2 ~ L1, value.var = "value")
-  frob.errorMatrix <- frob.errorMatrix[order(as.numeric(frob.errorMatrix$L2)),]
+  frob.errorMatrix <-
+    frob.errorMatrix[order(as.numeric(frob.errorMatrix$L2)), ]
   frob.errorMatrix <- frob.errorMatrix[, -1]
   frob.errorMatrix <-
     frob.errorMatrix[, order(as.numeric(colnames(frob.errorMatrix)))]
@@ -352,9 +346,9 @@ getFrobError <- function(dec.matrix) {
   return(frob.errorMatrix)
 }
 
-#' Getter function for H-Matrix list from NMF-GPU list 
+#' Getter function for H-Matrix list from NMF-GPU list
 #'
-#' @param dec.matrix 
+#' @param dec.matrix
 #'
 #' @return
 #'
@@ -370,7 +364,7 @@ getHMatrixList <- function(dec.matrix) {
 
 #' Getter function for W-Matrix list from NMF-GPU list
 #'
-#' @param dec.matrix 
+#' @param dec.matrix
 #'
 #' @return
 #'
@@ -386,7 +380,7 @@ getWMatrixList <- function(dec.matrix) {
 
 #' Getter function for W-Matrix list from NMF-CPU list
 #'
-#' @param dec.matrix 
+#' @param dec.matrix
 #'
 #' @return
 #'
@@ -403,7 +397,7 @@ getCpuWMatrixList <- function(cpu.nmf.list, k.min, k.max) {
 
 #' Getter function for H-Matrix list from NMF-CPU list
 #'
-#' @param dec.matrix 
+#' @param dec.matrix
 #'
 #' @return
 #'
@@ -446,7 +440,7 @@ computeFrobErrorStats <- function(nmf.exp) {
 
 #' Compute p-value with t-test for running K
 #'
-#' @param frobError.matrix 
+#' @param frobError.matrix
 #'
 #' @return
 #' @export
@@ -464,8 +458,8 @@ computePValue4FrobError <- function(frobError.matrix) {
 
 #' Cosine similarity
 #'
-#' @param a 
-#' @param b 
+#' @param a
+#' @param b
 #'
 #' @return
 #' @export
@@ -477,8 +471,8 @@ cosineSim <- function(a, b){
 
 #' Cosine distance
 #'
-#' @param a 
-#' @param b 
+#' @param a
+#' @param b
 #'
 #' @return
 #' @export
@@ -490,8 +484,8 @@ cosineDist <- function(a, b){
 
 #' Create distance matrix with cosine similarity
 #'
-#' @param in.matrix 
-#' @param in.dimension 
+#' @param in.matrix
+#' @param in.dimension
 #'
 #' @return
 #' @export
@@ -510,8 +504,8 @@ cosineDiss <- function(in.matrix, in.dimension=2){
 
 #' Create distance matrix with cosine similarity with matrix operations
 #'
-#' @param in.matrix 
-#' @param in.dimension 
+#' @param in.matrix
+#' @param in.dimension
 #'
 #' @return
 #' @export
@@ -533,7 +527,7 @@ cosineDissMat <- function(in.matrix, in.dimension=2){
 #' @param nmf.exp
 #'
 #' @return
-#' 
+#'
 #' @importFrom cluster pam
 #' @export
 #'
@@ -556,7 +550,7 @@ computeSilhoutteWidth <- function(nmf.exp) {
 
 #' Compute Cophenetic correlation coefficient, TO BE IMPROVED
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return
 #' @export
@@ -634,8 +628,8 @@ computeAmariDistances <- function(nmf.exp){
 # and classify signature according to cluster and highest cluster mean.
 #' Compute unsupervised signature names from colData and H-Matrix for given K
 #'
-#' @param nmf.exp 
-#' @param k.opt 
+#' @param nmf.exp
+#' @param k.opt
 #'
 #' @return
 #' @export
@@ -675,7 +669,7 @@ getSignatureNames <- function(nmf.exp, k.opt) {
 #                         W-MATRIX ANALYSIS FUNCTIONS:                         #
 #                             FEATURE SELECTION                                #
 #==============================================================================#
-#' Compute 'shannon' entropy per region. 
+#' Compute 'shannon' entropy per region.
 #' High Entropy means highly specific for one signature.
 #'
 #' @param matrix
@@ -696,7 +690,7 @@ computeEntropy <- function(matrix) {
 
 #' Computes entropy for each feature in optimal K W-matrix
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return
 #' @export
@@ -711,7 +705,7 @@ computeEntropy4OptK <- function(nmf.exp) {
 
 #' Compute delta between each column (signature) per row
 #'
-#' @param matrix 
+#' @param matrix
 #'
 #' @return
 #'
@@ -727,7 +721,7 @@ computeAbsDelta <- function(matrix) {
 
 #' Computes absolut delta per feature for each signature given optimal K
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return
 #' @export
@@ -740,9 +734,9 @@ computeAbsDelta4OptK <- function(nmf.exp) {
   return(nmf.exp)
 }
 
-#' Compute the coeficient of variation per row in a matrix. 
+#' Compute the coeficient of variation per row in a matrix.
 #'
-#' @param matrix 
+#' @param matrix
 #'
 #' @return
 #'
@@ -752,11 +746,11 @@ computeCoefVar <- function(matrix) {
 }
 
 #' Perform Kmeans on rows of a matrix to classify them into column (singature) combinations
-#' 
-#' @param matrix 
+#'
+#' @param matrix
 #'
 #' @return
-#' 
+#'
 #' @importFrom cluster silhouette
 #' @export
 #'
@@ -782,8 +776,8 @@ performRowKmeans <- function(matrix) {
 
 #' Compute Signature Combinations for W-matrix given optimal K
 #'
-#' @param nmf.exp 
-#' @param var.thres 
+#' @param nmf.exp
+#' @param var.thres
 #'
 #' @return
 #' @export
@@ -847,7 +841,7 @@ computeFeatureStats <- function(nmf.exp, var.thres = 0.25) {
 
 #' Title
 #'
-#' @param k.ids 
+#' @param k.ids
 #'
 #' @return
 #' @export
@@ -871,8 +865,8 @@ getIndex4SignatureCombs <- function(k.ids) {
 
 #' Title
 #'
-#' @param W 
-#' @param i.regions 
+#' @param W
+#' @param i.regions
 #'
 #' @return
 #' @export
@@ -899,8 +893,8 @@ computeMeanDiff4SignatureCombs <- function(W, i.regions) {
 ### Get number of peaks per signature combination and create a barplot.
 #' Title
 #'
-#' @param i.regions 
-#' @param w.diffs 
+#' @param i.regions
+#' @param w.diffs
 #'
 #' @return
 #' @export
@@ -922,25 +916,25 @@ getSignatureCombCounts <- function(i.regions, w.diffs) {
 
 
 #' Normalize the signatures matrix (W)
-#' 
-#' After column normalization of the matrix W, the inverse factors are 
-#' mutiplied with the rows of H in order to keep the matrix product W*H 
+#'
+#' After column normalization of the matrix W, the inverse factors are
+#' mutiplied with the rows of H in order to keep the matrix product W*H
 #' constant.
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return A data structure of type nmfExperiment
-#' 
+#'
 #' @importFrom YAPSA normalize_df_per_dim
 #' @export
 #'
 #' @examples
 #'  NULL
-#' 
+#'
 normalizeW <- function(nmf.exp){
   # account for WMatrixList and HMatrixList
   all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
-    k_list <- 
+    k_list <-
       lapply(seq_along(WMatrixList(nmf.exp)[[k_ind]]), function(init_ind){
         tempW <- WMatrixList(nmf.exp)[[k_ind]][[init_ind]]
         tempH <- HMatrixList(nmf.exp)[[k_ind]][[init_ind]]
@@ -978,21 +972,21 @@ normalizeW <- function(nmf.exp){
 }
 
 #' Normalize the signatures matrix (H)
-#' 
-#' After row normalization of the matrix H, the inverse factors are 
-#' mutiplied with the columns of W in order to keep the matrix product W*H 
+#'
+#' After row normalization of the matrix H, the inverse factors are
+#' mutiplied with the columns of W in order to keep the matrix product W*H
 #' constant.
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return A data structure of type nmfExperiment
-#' 
+#'
 #' @importFrom YAPSA normalize_df_per_dim
 #' @export
 #'
 #' @examples
 #'  NULL
-#' 
+#'
 normalizeH <- function(nmf.exp){
   # account for WMatrixList and HMatrixList
   all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
@@ -1026,20 +1020,20 @@ normalizeH <- function(nmf.exp){
 }
 
 #' Regularize the signatures matrix (H)
-#' 
-#' After row regularization of the matrix H, the inverse factors are 
-#' mutiplied with the columns of W in order to keep the matrix product W*H 
+#'
+#' After row regularization of the matrix H, the inverse factors are
+#' mutiplied with the columns of W in order to keep the matrix product W*H
 #' constant.
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return A data structure of type nmfExperiment
-#' 
+#'
 #' @export
 #'
 #' @examples
 #'  NULL
-#' 
+#'
 regularizeH <- function(nmf.exp){
   # account for WMatrixList and HMatrixList
   all_list <- lapply(seq_along(WMatrixList(nmf.exp)), function(k_ind){
@@ -1076,10 +1070,10 @@ regularizeH <- function(nmf.exp){
 #'
 #' @param in_nmf1 First object of type nmfExperiment
 #' @param in_nmf2 Second object of type nmfExperiment
-#' @param rerunStats 
-#'  Boolean to indicate whether statistics should be computed on the merged 
+#' @param rerunStats
+#'  Boolean to indicate whether statistics should be computed on the merged
 #'  object
-#' @param verbose 
+#' @param verbose
 #'
 #' @return The merged object of type nmfExperiment
 #' @export
@@ -1087,7 +1081,7 @@ regularizeH <- function(nmf.exp){
 #' @examples
 #'  NULL
 #'
-merge.nmf <- function(in_nmf1, 
+merge.nmf <- function(in_nmf1,
                       in_nmf2,
                       rerunStats = TRUE,
                       verbose = FALSE){
@@ -1171,7 +1165,7 @@ merge.nmf <- function(in_nmf1,
 #' Compute signature specific features
 #'
 #' @param nmf.exp A NMF experiment object
-#' @param rowDataId The index of the rowData(nmf.exp) data.frame that should be used for 
+#' @param rowDataId The index of the rowData(nmf.exp) data.frame that should be used for
 #'  feature extraction. In case rowData(nmf.exp)[,1] is a GRanges or a related object like
 #'  GenomicInteractions this parameter can be ignored
 #'

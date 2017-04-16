@@ -4,7 +4,7 @@
 #' Science like figures - ggplot2 theme
 #'
 #' @return
-#' 
+#'
 #' @import ggplot2
 #' @export
 #'
@@ -24,7 +24,7 @@ science_theme <- function() {
 #' @param nmf.exp
 #'
 #' @return
-#' 
+#'
 #' @importFrom reshape2 melt
 #' @import ggplot2
 #' @import cowplot
@@ -50,16 +50,16 @@ plotKStats <- function(nmf.exp) {
                                   aes(x = k, y = value), col = "red")
   gg.optK <- gg.optK + facet_wrap(~variable, scales = "free_y")
   gg.optK <- gg.optK + xlab("K") + ylab("") + theme_bw() + science_theme()
-  gg.optK <- gg.optK + theme(strip.background	= element_rect(fill = "white"))
+  gg.optK <- gg.optK + theme(strip.background = element_rect(fill = "white"))
   return(gg.optK)
 }
 
 #' Ploting function for Rank vs. Frobenius Error
 #'
-#' @param nmf.exp 
+#' @param nmf.exp
 #'
 #' @return
-#' 
+#'
 #' @import ggplot2
 #' @import cowplot
 #' @export
@@ -92,10 +92,10 @@ plotRankedFrobErrors <- function(nmf.exp) {
 
 #' Generate ColorMap for ComplexHeatmaps
 #'
-#' @param matrix.list 
+#' @param matrix.list
 #'
 #' @return
-#' 
+#'
 #' @importFrom circlize colorRamp2
 #' @export
 #'
@@ -114,10 +114,10 @@ getColorMap <- function(matrix.list) {
 
 #' Computes color annotation for colData from NMF-experiment class
 #'
-#' @param col.data 
+#' @param col.data
 #'
 #' @return
-#' 
+#'
 #' @import RColorBrewer
 #' @export
 #'
@@ -148,11 +148,11 @@ getColorAnno <- function(col.data) {
 
 #' Plot H-Matrix as heatmap for a given factorization rank K
 #'
-#' @param nmf.exp 
-#' @param k 
+#' @param nmf.exp
+#' @param k
 #'
 #' @return
-#' 
+#'
 #' @import ComplexHeatmap
 #' @export
 #'
@@ -185,14 +185,14 @@ plotHMatrix <- function(nmf.exp, k = 2){
 #' OLD VERSION MIGHT BE REMOVABLE
 #' Plot H or W-Matrix as heatmaps for a given range of K's
 #'
-#' @param matrix.list 
-#' @param titles 
-#' @param trans 
-#' @param cluster_columns 
-#' @param show.row 
+#' @param matrix.list
+#' @param titles
+#' @param trans
+#' @param cluster_columns
+#' @param show.row
 #'
 #' @return
-#' 
+#'
 #' @import ComplexHeatmap
 #' @export
 #'
@@ -231,12 +231,12 @@ plotHeatmap4MatrixList <- function(nmf.exp, H = T, W = F, titles = NULL,
 
 #' Title
 #'
-#' @param nmf.exp 
-#' @param sig.combs 
-#' @param col 
+#' @param nmf.exp
+#' @param sig.combs
+#' @param col
 #'
 #' @return
-#' 
+#'
 #' @export
 #' @import reshape2
 #' @import ggplot2
@@ -302,7 +302,7 @@ plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = "blue") {
 #' @param A of A * X = B
 #'
 #' @return X of A * X = B
-#' 
+#'
 #' @import nnls
 #'
 nnls_sol <- function(B, A) {
@@ -323,7 +323,7 @@ nnls_sol <- function(B, A) {
 #' @param sacle_fun
 #'
 #' @return node_ypos
-#' 
+#'
 yNodeCoords <- function(nodes, edges,
                         rank_flag = FALSE,
                         scale_factor = 1,
@@ -364,7 +364,7 @@ yNodeCoords <- function(nodes, edges,
 #' @param edges
 #'
 #' @return edges
-#' 
+#'
 reorderEdges <- function(nodes, edges){
   node_ypos <- nodes$y
   names(node_ypos) <- nodes$ID
@@ -386,7 +386,7 @@ reorderEdges <- function(nodes, edges){
 #' @param color whether to colorize the nodes based on PCA of the signatures
 #'
 #' @return ret riverplot object
-#' 
+#'
 #' @import riverplot
 #' @export
 #'

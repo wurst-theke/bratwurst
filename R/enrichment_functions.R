@@ -1,8 +1,8 @@
 #' Title
 #'
-#' @param peaks 
-#' @param subregions 
-#' @param universe 
+#' @param peaks
+#' @param subregions
+#' @param universe
 #'
 #' @return
 #' @export
@@ -18,9 +18,9 @@ computeRegionFC <- function(peaks, subregions, universe) {
 # Compute FC.
 #' Title
 #'
-#' @param peak 
-#' @param subregion 
-#' @param universe 
+#' @param peak
+#' @param subregion
+#' @param universe
 #'
 #' @return
 #' @export
@@ -46,9 +46,9 @@ computeRegionFC4GRlist <- function(peak, subregion, universe) {
 
 #' Title
 #'
-#' @param peaks 
-#' @param subregions 
-#' @param universe 
+#' @param peaks
+#' @param subregions
+#' @param universe
 #'
 #' @return
 #' @export
@@ -67,8 +67,8 @@ computeFisher4Regions <- function(peaks, subregions, universe) {
 ### NES Functions
 #' Title
 #'
-#' @param ranks 
-#' @param n 
+#' @param ranks
+#' @param n
 #'
 #' @return
 #' @export
@@ -85,10 +85,10 @@ computeRecoveryAUC <- function(ranks, n) {
 
 #' Title
 #'
-#' @param ranks 
-#' @param n 
-#' @param iter 
-#' @param threads 
+#' @param ranks
+#' @param n
+#' @param iter
+#' @param threads
 #'
 #' @return
 #' @export
@@ -106,10 +106,10 @@ computeRmdAUCs <- function(ranks, n, iter = 10^3, threads = 3) {
 
 #' Title
 #'
-#' @param ranks 
-#' @param n 
-#' @param iter 
-#' @param threads 
+#' @param ranks
+#' @param n
+#' @param iter
+#' @param threads
 #'
 #' @return
 #' @export
@@ -126,9 +126,9 @@ computeNES <- function(ranks, n, iter = 10^3, threads = 3) {
 
 #' Title
 #'
-#' @param peaks 
-#' @param subregions 
-#' @param universe 
+#' @param peaks
+#' @param subregions
+#' @param universe
 #'
 #' @return
 #' @export
@@ -165,9 +165,9 @@ computePeakStats4Regions <- function(peaks, subregions, universe) {
 
 #' Title
 #'
-#' @param peaks 
-#' @param subregions 
-#' @param universe 
+#' @param peaks
+#' @param subregions
+#' @param universe
 #'
 #' @return
 #' @export

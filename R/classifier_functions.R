@@ -1,8 +1,8 @@
 #' Generate classifier
-#' 
+#'
 #' Details
 #'
-#' @param matrix_W 
+#' @param matrix_W
 #'
 #' @return k.row, a list of lists (one list per row of the input matrix)
 #' @export
@@ -28,8 +28,8 @@ generate_classifier <- function(matrix_W){
 
 #' Filter features which are specific for a single signature
 #'
-#' @param k.row 
-#' @param specific 
+#' @param k.row
+#' @param specific
 #'
 #' @return
 #' @export
@@ -66,14 +66,14 @@ filter_specific_features <- function(k.row, specific=TRUE){
 }
 
 #' Filter features
-#' 
+#'
 #' Filter features which are specific for a single signature if min(size) == 1
 #' is already set
 #'
-#' @param k.row 
-#' @param out_int 
-#' @param specific_signatures 
-#' @param genes_df 
+#' @param k.row
+#' @param out_int
+#' @param specific_signatures
+#' @param genes_df
 #'
 #' @return
 #' @export
@@ -104,7 +104,7 @@ filter_features <- function(k.row,
 
 #' Match and count
 #'
-#' @param LCD_result_df 
+#' @param LCD_result_df
 #'
 #' @return
 #' @export
@@ -130,10 +130,10 @@ return(c(counter = counter, match = match_value))
 
 #' Confusion matrix
 #'
-#' @param temp_exposures_df 
-#' @param confusion_df 
-#' @param LCD_result_df 
-#' @param match_value 
+#' @param temp_exposures_df
+#' @param confusion_df
+#' @param LCD_result_df
+#' @param match_value
 #'
 #' @return
 #' @export
@@ -159,7 +159,7 @@ confusion_matrix_handmade <- function(temp_exposures_df, confusion_df,
 
 #' Calculate F1 score
 #'
-#' @param LCD_result_df 
+#' @param LCD_result_df
 #'
 #' @return
 #' @export
@@ -208,12 +208,12 @@ calculate_FI <- function(LCD_result_df){
 
 #' Title
 #'
-#' @param signature_matrix 
-#' @param matrix_V 
-#' @param test_odds 
-#' @param test_dist 
-#' @param oddsVar_min 
-#' @param k.dist_max 
+#' @param signature_matrix
+#' @param matrix_V
+#' @param test_odds
+#' @param test_dist
+#' @param oddsVar_min
+#' @param k.dist_max
 #'
 #' @return
 #' @export
@@ -310,9 +310,9 @@ calculate_for_classifier_range <- function(signature_matrix,
 
 #' Extract genes specfic for each signature
 #'
-#' @param genes_df 
-#' @param annotation_df 
-#' @param match_by 
+#' @param genes_df
+#' @param annotation_df
+#' @param match_by
 #'
 #' @return
 #' @export
@@ -349,7 +349,7 @@ extract_signature_specific_genes <- function(genes_df, annotation_df,
 
 #' Build GRanges object from signature list
 #'
-#' @param specific_signatures_list 
+#' @param specific_signatures_list
 #'
 #' @return
 #' @export
