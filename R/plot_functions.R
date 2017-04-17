@@ -268,7 +268,8 @@ plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = "blue") {
   n.peaks$sigCombId <- factor(n.peaks$sigCombId,
                               levels = n.peaks$sigCombId[i.order])
   # Prepare heatmap annotation plot for signature feature plot
-  gg.heat <- ggplot(anno.matrix, aes(x = Var2, y = Var1, fill = value))
+  gg.heat <- ggplot(anno.matrix,
+                    aes_string(x = "Var2", y = "Var1", fill = "value"))
   gg.heat <- gg.heat + geom_tile(col = "black", size = 0.5)
   gg.heat <- gg.heat + scale_fill_manual(values = c("white", "black"))
   gg.heat <- gg.heat + ylab("Signatures") + xlab ("Signature combinations")
@@ -279,8 +280,9 @@ plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = "blue") {
           axis.text.x = element_blank(), axis.line = element_blank(),
           panel.grid = element_blank(), panel.border = element_blank())
   # Prepare barplot for signature feature plot
-  gg.bar <- ggplot(n.peaks, aes(x = sigCombId, y = value)) #, fill = clusterId))
-  gg.bar <- gg.bar + geom_bar(colour = "black", fill = col, stat = "identity",
+  gg.bar <- ggplot(n.peaks, aes_string(x = "sigCombId", y = "value"))#,
+                                     # fill = clusterId))
+  gg.bar <- gg.bar + geom_bar(colour = "black", fill = "col", stat = "identity",
                               position = position_dodge())
   gg.bar <- gg.bar + xlab("") + ylab("#Features")
   gg.bar <- gg.bar + theme_bw() + theme_cowplot()

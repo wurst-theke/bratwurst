@@ -875,12 +875,12 @@ computeMeanDiff4SignatureCombs <- function(W, i.regions) {
   w.diffs <- lapply(1:length(i.regions), function(i) {
     w <- W[i.regions[[i]], ]
     if (!grepl(names(i.regions)[i], pattern = "2")) {
-      w.diff <- rowMean(w)
+      w.diff <- rowMeans(w)
     } else {
       signature.comb <-
         as.numeric(unlist(strsplit(names(i.regions)[[i]], split = "")))
-      w.mean1 <- rowMean(w[, which(signature.comb == 1)])
-      w.mean2 <- rowMean(w[, which(signature.comb == 2)])
+      w.mean1 <- rowMeans(w[, which(signature.comb == 1)])
+      w.mean2 <- rowMeans(w[, which(signature.comb == 2)])
       w.diff <- w.mean1 - w.mean2
     }
     return(w.diff)
