@@ -128,40 +128,13 @@ match_and_count <- function(LCD_result_df){
 return(c(counter = counter, match = match_value))
 }
 
-#' Confusion matrix
-#'
-#' @param temp_exposures_df
-#' @param confusion_df
-#' @param LCD_result_df
-#' @param match_value
-#'
-#' @return
-#' @export
-#'
-#' @examples
-confusion_matrix_handmade <- function(temp_exposures_df, confusion_df,
-                                      LCD_result_df, match_value){
-  confusion_value <- 0
-  for(x in 1:dim(temp_exposures_df)[2]){
-    max_col <- which.max(temp_exposures_df[, x])
-    temp_col <- gsub("\\.[0-9]*$", "", colnames(temp_exposures_df)[x])
-    temp_row <- gsub("\\.[0-9]*$", "", rownames(temp_exposures_df)[max_col])
-    confusion_value <- confusion_value + confusion_df[temp_row, temp_col]
-  }
-  temp_FL_DLBCL <- confusion_value - match_value * 3
-  temp_BL_non_BL <- dim(LCD_result_df)[2] - temp_FL_DLBCL - match_value
-  confusion_vector <- c(confusion_value = confusion_value,
-                        all_sample = dim(LCD_result_df)[2],
-                        matches = match_value, miss_FL_DLBCL = temp_FL_DLBCL,
-                        miss_BL_non =  temp_BL_non_BL)
-  return(confusion_vector)
-}
-
 #' Calculate F1 score
 #'
 #' @param LCD_result_df
 #'
 #' @return
+#'
+#' @importFrom caret confusionMatrix
 #' @export
 #'
 #' @examples
@@ -196,7 +169,7 @@ calculate_FI <- function(LCD_result_df){
     FI_vector <- 0
     FI <- 0
     warning(paste0("ConfusionMatrix could not been used: levels of ",
-                   "reference more than levels of matches"))
+                   "reference exceed levels of matches"))
   }
   return(list(FI_vector = FI_vector, FI = FI))
 }
@@ -250,7 +223,6 @@ calculate_for_classifier_range <- function(signature_matrix,
         if(class(LCD_abs) == "try-error"){
           counter <- 0
           match_value <- 0
-          confusion_vector <- 0
           sample_size <- 1
           FI <- 0
           FI_vector <- 0
@@ -270,7 +242,6 @@ calculate_for_classifier_range <- function(signature_matrix,
       } else {
         counter <- 0
         match_value <- 0
-        confusion_vector <- 0
         sample_size <- 1
         FI <- 0
         FI_vector <- 0
