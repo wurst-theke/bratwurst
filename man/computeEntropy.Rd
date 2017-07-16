@@ -2,7 +2,7 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computeEntropy}
 \alias{computeEntropy}
-\title{Compute 'shannon' entropy per region. 
+\title{Compute 'shannon' entropy per region.
 High Entropy means highly specific for one signature.}
 \usage{
 computeEntropy(matrix)
@@ -14,7 +14,7 @@ computeEntropy(matrix)
 
 }
 \description{
-Compute 'shannon' entropy per region. 
+Compute 'shannon' entropy per region.
 High Entropy means highly specific for one signature.
 }
 

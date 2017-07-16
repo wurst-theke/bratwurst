@@ -7,8 +7,6 @@
 computeFeatureStats(nmf.exp, var.thres = 0.25)
 }
 \arguments{
-\item{nmf.exp}{}
-
 \item{var.thres}{}
 }
 \description{

@@ -8,10 +8,6 @@ extract_signature_specific_genes(genes_df, annotation_df,
   match_by = "external_gene_name")
 }
 \arguments{
-\item{genes_df}{}
-
-\item{annotation_df}{}
-
 \item{match_by}{}
 }
 \description{

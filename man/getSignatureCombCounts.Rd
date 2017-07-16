@@ -7,8 +7,6 @@
 getSignatureCombCounts(i.regions, w.diffs)
 }
 \arguments{
-\item{i.regions}{}
-
 \item{w.diffs}{}
 }
 \description{

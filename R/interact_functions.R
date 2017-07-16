@@ -26,7 +26,7 @@
 translateBratwurstToYAPSA <- function(nmf.exp){
   norm.nmf.exp <- normalizeW(nmf.exp)
   kList <- as.numeric(as.character(names(WMatrix(nmf.exp))))
-  BratwurstListsList <- 
+  BratwurstListsList <-
     lapply(kList, function(current_k){
       temp_sig_df <- as.data.frame(WMatrix(norm.nmf.exp, k = current_k))
       rownames(temp_sig_df) <- rownames(norm.nmf.exp)
@@ -35,10 +35,11 @@ translateBratwurstToYAPSA <- function(nmf.exp){
       colnames(temp_expo_df) <- colnames(norm.nmf.exp)
       rownames(temp_expo_df) <- paste0("S", seq(dim(temp_expo_df)[1]))
       temp_normExpo_df <- normalize_df_per_dim(temp_expo_df, in_dimension = 2)
-      temp_sigInd_df <- data.frame(sig = colnames(temp_sig_df),
-                                   index = seq(dim(temp_sig_df)[2]),
-                                   colour = rainbow(dim(temp_sig_df)[2]),
-                                   process = rep("unknown", dim(temp_sig_df)[2]))
+      temp_sigInd_df <-
+        data.frame(sig = colnames(temp_sig_df),
+                   index = seq(dim(temp_sig_df)[2]),
+                   colour = rainbow(dim(temp_sig_df)[2]),
+                   process = rep("unknown", dim(temp_sig_df)[2]))
       return(list(exposures = temp_expo_df,
                   norm_exposures = temp_normExpo_df,
                   signatures = temp_sig_df,

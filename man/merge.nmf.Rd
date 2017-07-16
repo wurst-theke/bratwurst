@@ -11,7 +11,7 @@ merge.nmf(in_nmf1, in_nmf2, rerunStats = TRUE, verbose = FALSE)
 
 \item{in_nmf2}{Second object of type nmfExperiment}
 
-\item{rerunStats}{Boolean to indicate whether statistics should be computed on the merged 
+\item{rerunStats}{Boolean to indicate whether statistics should be computed on the merged
 object}
 
 \item{verbose}{}
@@ -24,6 +24,6 @@ Merge two objects of type nmfExperiment
 }
 \examples{
  NULL
- 
+
 }
 

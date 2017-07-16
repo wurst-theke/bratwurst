@@ -9,6 +9,9 @@ calculate_FI(LCD_result_df)
 \arguments{
 \item{LCD_result_df}{}
 }
+\value{
+
+}
 \description{
 Calculate F1 score
 }

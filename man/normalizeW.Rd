@@ -13,8 +13,8 @@ normalizeW(nmf.exp)
 A data structure of type nmfExperiment
 }
 \description{
-After column normalization of the matrix W, the inverse factors are 
-mutiplied with the rows of H in order to keep the matrix product W*H 
+After column normalization of the matrix W, the inverse factors are
+mutiplied with the rows of H in order to keep the matrix product W*H
 constant.
 }
 \examples{

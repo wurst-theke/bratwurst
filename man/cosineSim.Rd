@@ -7,8 +7,6 @@
 cosineSim(a, b)
 }
 \arguments{
-\item{a}{}
-
 \item{b}{}
 }
 \description{

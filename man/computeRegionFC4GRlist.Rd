@@ -7,11 +7,10 @@
 computeRegionFC4GRlist(peak, subregion, universe)
 }
 \arguments{
-\item{peak}{}
-
-\item{subregion}{}
-
 \item{universe}{}
+}
+\value{
+
 }
 \description{
 Title

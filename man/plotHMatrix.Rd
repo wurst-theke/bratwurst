@@ -7,8 +7,6 @@
 plotHMatrix(nmf.exp, k = 2)
 }
 \arguments{
-\item{nmf.exp}{}
-
 \item{k}{}
 }
 \value{

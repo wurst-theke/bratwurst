@@ -10,18 +10,6 @@ runNmfGpu(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10,
   tmp.path = "/tmp/nmf_tmp")
 }
 \arguments{
-\item{k.min}{}
-
-\item{k.max}{}
-
-\item{outer.iter}{}
-
-\item{inner.iter}{}
-
-\item{conver.test.niter}{}
-
-\item{conver.test.stop.threshold}{}
-
 \item{out.dir}{}
 }
 \value{

@@ -7,12 +7,6 @@
 computeNES(ranks, n, iter = 10^3, threads = 3)
 }
 \arguments{
-\item{ranks}{}
-
-\item{n}{}
-
-\item{iter}{}
-
 \item{threads}{}
 }
 \description{

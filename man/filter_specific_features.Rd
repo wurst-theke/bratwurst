@@ -7,8 +7,6 @@
 filter_specific_features(k.row, specific = TRUE)
 }
 \arguments{
-\item{k.row}{}
-
 \item{specific}{}
 }
 \description{

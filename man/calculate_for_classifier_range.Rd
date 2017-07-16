@@ -8,16 +8,6 @@ calculate_for_classifier_range(signature_matrix, matrix_V, test_odds, test_dist,
   oddsVar_min = 0, k.dist_max = 1e+05)
 }
 \arguments{
-\item{signature_matrix}{}
-
-\item{matrix_V}{}
-
-\item{test_odds}{}
-
-\item{test_dist}{}
-
-\item{oddsVar_min}{}
-
 \item{k.dist_max}{}
 }
 \description{
