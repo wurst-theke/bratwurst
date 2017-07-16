@@ -399,6 +399,17 @@ leukemia.nmf.exp<- runNmfGpu(nmf.exp = leukemia.nmf.exp,
                              outer.iter = outer.iter,
                              inner.iter = inner.iter,
                              tmp.path = "/tmp/tmp_leukemia")
+# leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
+#                                    k.max = k.max,
+#                                    outer.iter = outer.iter,
+#                                    inner.iter = inner.iter,
+#                                    tmp.path = "/tmp/tmp_leukemia")
+# leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
+#                                    k.max = k.max,
+#                                    outer.iter = outer.iter,
+#                                    inner.iter = inner.iter,
+#                                    tmp.path = "/tmp/tmp_leukemia",
+#                                    binary.file.transfer = TRUE)
 ```
 
 Depending on the choice of parameters (dimensions of the input matrix, number 
