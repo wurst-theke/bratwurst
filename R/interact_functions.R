@@ -1,20 +1,20 @@
 #' Translate from Bratwurst to YAPSA
-#' 
+#'
 #' Bratwurst (this package, wrapping NMF on GPU functionality) and YAPSA are
-#' complementary. Both do signature analysis, but Bratwurst implements 
-#' unsupervised analyses (based on NMF), YAPSA runs supervised analyses (based 
-#' on LCD deconvolutions). Both have their own conventions and historically 
-#' evolved data structures. This function translates from the Bratwurst world 
+#' complementary. Both do signature analysis, but Bratwurst implements
+#' unsupervised analyses (based on NMF), YAPSA runs supervised analyses (based
+#' on LCD deconvolutions). Both have their own conventions and historically
+#' evolved data structures. This function translates from the Bratwurst world
 #' to the YAPSA world.
 #'
 #' @param nmf.exp Input data of class nmfExperiment
 #'
-#' @return 
+#' @return
 #'  A list of lists:
-#'  outer list: different factorization ranks, 
+#'  outer list: different factorization ranks,
 #'  inner list: different layers of information per factorization rank, e.g.
 #'  exposures, norm_exposures, signatures or out_sig_ind_df
-#'  
+#'
 #' @importFrom YAPSA normalize_df_per_dim
 #' @export
 #'
@@ -23,8 +23,12 @@
 #' @examples
 #'  NULL
 #'
-translateBratwurstToYAPSA <- function(nmf.exp){
-  norm.nmf.exp <- normalizeW(nmf.exp)
+translateBratwurstToYAPSA <- function(nmf.exp, normalize = TRUE){
+  if(normalize){
+    norm.nmf.exp <- normalizeW(nmf.exp)
+  } else {
+    norm.nmf.exp <- nmf.exp
+  }
   kList <- as.numeric(as.character(names(WMatrix(nmf.exp))))
   BratwurstListsList <-
     lapply(kList, function(current_k){

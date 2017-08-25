@@ -22,6 +22,7 @@ science_theme <- function() {
 #' Universal ploting function for Optimal K Statistics
 #'
 #' @param nmf.exp
+#' @param plot.vars quality metrics to be displayed
 #'
 #' @return
 #'
@@ -31,7 +32,10 @@ science_theme <- function() {
 #' @export
 #'
 #' @examples
-plotKStats <- function(nmf.exp) {
+plotKStats <- function(nmf.exp,
+                       plot.vars = c("FrobError", "cv", "sumSilWidth",
+                                  "meanSilWidth", "copheneticCoeff",
+                                  "meanAmariDist")) {
   frobError.df <- melt(as.data.frame(FrobError(nmf.exp)))
   frobError.df[, 1] <- factor(gsub("X", "", frobError.df[, 1]))
   frobError.df <- data.frame("k" = frobError.df[, 1],
@@ -40,7 +44,7 @@ plotKStats <- function(nmf.exp) {
   optKStats.df <- melt(as.data.frame(OptKStats(nmf.exp)), id.vars = "k")
   meanError.df <- optKStats.df[optKStats.df$variable == "mean", ]
   meanError.df$variable <- unique(frobError.df$variable)
-  plot.vars <- as.character(unique(optKStats.df$variable)[-1:-3])
+  #plot.vars <- as.character(unique(optKStats.df$variable)[-1:-3])
   optKStats.df <- optKStats.df[optKStats.df$variable %in% plot.vars, ]
   optKStats.df <- rbind(frobError.df, optKStats.df)
   optKStats.df$k <- as.numeric(as.character(optKStats.df$k))
@@ -442,4 +446,48 @@ generateRiverplot <- function(nmf.exp, edges.cutoff = 0, useH=FALSE,
   }
   ret <- makeRiver(nodes = nodes, edges = edges)
   return(ret)
+}
+
+
+attributeComparisonSignatures <- function(in_nmf.exp, in_signatures_df,
+                                          in_sigInd_df, in_normalize = TRUE){
+  my_NMFlistsList <- translateBratwurstToYAPSA(in_nmf.exp,
+                                               normalize = in_normalize)
+  new_NMFlistsList <-
+    deriveSigInd_df(in_signatures_df, my_NMFlistsList, in_sigInd_df)
+  sigNameVecList <-
+    lapply(names(new_NMFlistsList), function(current_rank) {
+      current_list <- new_NMFlistsList[[current_rank]]
+      current_df <- current_list$out_sig_ind
+      currentVec <- as.character(current_df$match)
+      names(currentVec) <- paste0(current_rank, "_",
+                                  as.character(current_df$sig))
+      return(currentVec)
+    })
+  sigNameVec <- do.call(c, sigNameVecList)
+  compositeNameVec <- paste0(names(sigNameVec), "\n", sigNameVec)
+  names(compositeNameVec) <- names(sigNameVec)
+  sigColVector <- in_sigInd_df$colour
+  names(sigColVector) <- in_sigInd_df$sig
+  return(list(sig_names = sigNameVec,
+              name_vector = compositeNameVec,
+              col_vector = sigColVector))
+}
+
+relabelRiverplot <- function(in_riverplot, in_list){
+  in_riverplot$nodes$labels <-
+    in_list$name_vector[as.character(in_riverplot$nodes$ID)]
+  tempVec <-unlist(lapply(strsplit(
+    in_list$sig_names[as.character(in_riverplot$nodes$ID)], split = "_"),
+    head, 1))
+  in_riverplot$nodes$col <- as.character(in_list$col_vector[as.character(tempVec)])
+  temp_list <-
+    lapply(seq_len(dim(in_riverplot$nodes)[1]), function(current_nodeInd){
+      in_riverplot$styles[[current_nodeInd]]$col <-
+        as.character(in_riverplot$nodes$col[current_nodeInd])
+      return(in_riverplot$styles[[current_nodeInd]])
+    })
+  names(temp_list) <- names(in_riverplot$styles)
+  in_riverplot$styles <- temp_list
+  return(in_riverplot)
 }
