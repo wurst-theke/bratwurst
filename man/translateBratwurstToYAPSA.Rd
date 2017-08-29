@@ -4,23 +4,23 @@
 \alias{translateBratwurstToYAPSA}
 \title{Translate from Bratwurst to YAPSA}
 \usage{
-translateBratwurstToYAPSA(nmf.exp)
+translateBratwurstToYAPSA(nmf.exp, normalize = TRUE)
 }
 \arguments{
 \item{nmf.exp}{Input data of class nmfExperiment}
 }
 \value{
 A list of lists:
- outer list: different factorization ranks, 
+ outer list: different factorization ranks,
  inner list: different layers of information per factorization rank, e.g.
  exposures, norm_exposures, signatures or out_sig_ind_df
 }
 \description{
 Bratwurst (this package, wrapping NMF on GPU functionality) and YAPSA are
-complementary. Both do signature analysis, but Bratwurst implements 
-unsupervised analyses (based on NMF), YAPSA runs supervised analyses (based 
-on LCD deconvolutions). Both have their own conventions and historically 
-evolved data structures. This function translates from the Bratwurst world 
+complementary. Both do signature analysis, but Bratwurst implements
+unsupervised analyses (based on NMF), YAPSA runs supervised analyses (based
+on LCD deconvolutions). Both have their own conventions and historically
+evolved data structures. This function translates from the Bratwurst world
 to the YAPSA world.
 }
 \examples{

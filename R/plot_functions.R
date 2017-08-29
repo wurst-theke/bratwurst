@@ -449,6 +449,17 @@ generateRiverplot <- function(nmf.exp, edges.cutoff = 0, useH=FALSE,
 }
 
 
+#' Preparation for relabelling and recolouring of a riverplot
+#'
+#' @param in_nmf.exp
+#' @param in_signatures_df
+#' @param in_sigInd_df
+#' @param in_normalize
+#'
+#' @return
+#' @export
+#'
+#' @examples
 attributeComparisonSignatures <- function(in_nmf.exp, in_signatures_df,
                                           in_sigInd_df, in_normalize = TRUE){
   my_NMFlistsList <- translateBratwurstToYAPSA(in_nmf.exp,
@@ -474,13 +485,23 @@ attributeComparisonSignatures <- function(in_nmf.exp, in_signatures_df,
               col_vector = sigColVector))
 }
 
+#' Relabel and recolour a riverplot
+#'
+#' @param in_riverplot
+#' @param in_list
+#'
+#' @return
+#' @export
+#'
+#' @examples
 relabelRiverplot <- function(in_riverplot, in_list){
   in_riverplot$nodes$labels <-
     in_list$name_vector[as.character(in_riverplot$nodes$ID)]
   tempVec <-unlist(lapply(strsplit(
     in_list$sig_names[as.character(in_riverplot$nodes$ID)], split = "_"),
     head, 1))
-  in_riverplot$nodes$col <- as.character(in_list$col_vector[as.character(tempVec)])
+  in_riverplot$nodes$col <-
+    as.character(in_list$col_vector[as.character(tempVec)])
   temp_list <-
     lapply(seq_len(dim(in_riverplot$nodes)[1]), function(current_nodeInd){
       in_riverplot$styles[[current_nodeInd]]$col <-
