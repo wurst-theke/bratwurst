@@ -5,10 +5,12 @@
 \title{Universal ploting function for Optimal K Statistics}
 \usage{
 plotKStats(nmf.exp, plot.vars = c("FrobError", "cv", "sumSilWidth",
-  "meanSilWidth", "copheneticCoeff", "meanAmariDist"))
+  "meanSilWidth", "copheneticCoeff", "meanAmariDist"), optK = NULL)
 }
 \arguments{
 \item{plot.vars}{quality metrics to be displayed}
+
+\item{optK}{optimal factorization rank, highlighted in the plot if non-NULL}
 }
 \value{
 

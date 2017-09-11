@@ -23,6 +23,7 @@ science_theme <- function() {
 #'
 #' @param nmf.exp
 #' @param plot.vars quality metrics to be displayed
+#' @param optK optimal factorization rank, highlighted in the plot if non-NULL
 #'
 #' @return
 #'
@@ -35,7 +36,8 @@ science_theme <- function() {
 plotKStats <- function(nmf.exp,
                        plot.vars = c("FrobError", "cv", "sumSilWidth",
                                   "meanSilWidth", "copheneticCoeff",
-                                  "meanAmariDist")) {
+                                  "meanAmariDist"),
+                       optK = NULL) {
   frobError.df <- melt(as.data.frame(FrobError(nmf.exp)))
   frobError.df[, 1] <- factor(gsub("X", "", frobError.df[, 1]))
   frobError.df <- data.frame("k" = frobError.df[, 1],
@@ -55,6 +57,16 @@ plotKStats <- function(nmf.exp,
   gg.optK <- gg.optK + facet_wrap(~variable, scales = "free_y")
   gg.optK <- gg.optK + xlab("K") + ylab("") + theme_bw() + science_theme()
   gg.optK <- gg.optK + theme(strip.background = element_rect(fill = "white"))
+  if(!is.null(optK)){
+    if(min(optKStats.df$k) <= optK & optK <= max(optKStats.df$k)){
+      rect_df <- data.frame(xmin = optK - 0.5, xmax = optK + 0.5,
+                            ymin = -Inf, ymax = Inf)
+      gg.optK <- gg.optK +
+        geom_rect(data = rect_df, aes(xmin = xmin, xmax = xmax, ymin = ymin,
+                                      ymax = ymax),
+                  fill = "grey50", alpha = 0.3, inherit.aes = FALSE)
+    }
+  }
   return(gg.optK)
 }
 

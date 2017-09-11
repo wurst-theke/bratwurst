@@ -619,6 +619,36 @@ computeAmariDistances <- function(nmf.exp){
   return(nmf.exp)
 }
 
+local.minima <- function(x)
+  ifelse(dplyr::lag(x) >= x & dplyr::lead(x) >= x, TRUE, FALSE)
+local.maxima <- function(x)
+  ifelse(dplyr::lag(x) <= x & dplyr::lead(x) <= x, TRUE, FALSE)
+
+
+#' Title
+#'
+#' @param nmf.exp
+#' @param verbose
+#'
+#' @return
+#' @export
+#'
+#' @examples
+proposeOptK <- function(nmf.exp, verbose = FALSE){
+  OptKStats_DF <- OptKStats(nmf.exp)
+  if(ncol(OptKStats_DF) & nrow(OptKStats_DF)){
+    indCopheneticCoeff <- which(local.maxima(OptKStats_DF$copheneticCoeff))
+    indMeanAmariDist <- which(local.minima(OptKStats_DF$meanAmariDist))
+    return(list(
+      intersectK = OptKStats_DF$k[intersect(indCopheneticCoeff,
+                                            indMeanAmariDist)],
+      unionK = OptKStats_DF$k[union(indCopheneticCoeff, indMeanAmariDist)]))
+  } else {
+    if(verbose) cat("proposeOptK::warning:OptKStats not yet computed.\n")
+    return(NULL)
+  }
+}
+
 #==============================================================================#
 #                         H-MATRIX ANALYSIS FUNCTIONS                          #
 #==============================================================================#
