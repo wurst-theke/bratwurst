@@ -843,7 +843,10 @@ computeFeatureStats <- function(nmf.exp, var.thres = 0.25) {
                              "meanSil" = k.silmean)
   # Map reverse cluster definitions to each other,
   # including sign change for delta means
-  ids <- sort(unique(k.ids))[-1]
+  ids <- sort(unique(k.ids))[-1] ## this is not robust!!
+  ## must be replaced by
+  # equalPattern <- paste(rep("1", ncol(W)), collapse = "")
+  # ids <- setdiff(sort(unique(k.ids)), equalPattern)
   ids1 <- ids[1:(length(ids) / 2)]
   ids2 <-  gsub("0", "2", gsub("2", "1", gsub("1", "0", ids1)))
   conv.id <- data.frame("id1" = ids1, "id2" = ids2)

@@ -467,13 +467,17 @@ generateRiverplot <- function(nmf.exp, edges.cutoff = 0, useH=FALSE,
 #' @param in_signatures_df
 #' @param in_sigInd_df
 #' @param in_normalize
+#' @param in_optK If non-NULL, specifies the optimal factorization rank.
+#'  The signatures at this rank are the reference signatures, all other
+#'  signatures will get the suffix "-like"
 #'
 #' @return
 #' @export
 #'
 #' @examples
 attributeComparisonSignatures <- function(in_nmf.exp, in_signatures_df,
-                                          in_sigInd_df, in_normalize = TRUE){
+                                          in_sigInd_df, in_normalize = TRUE,
+                                          in_optK = NULL){
   my_NMFlistsList <- translateBratwurstToYAPSA(in_nmf.exp,
                                                normalize = in_normalize)
   new_NMFlistsList <-
@@ -490,6 +494,12 @@ attributeComparisonSignatures <- function(in_nmf.exp, in_signatures_df,
   sigNameVec <- do.call(c, sigNameVecList)
   compositeNameVec <- paste0(names(sigNameVec), "\n", sigNameVec)
   names(compositeNameVec) <- names(sigNameVec)
+  if(!is.null(in_optK)){
+    other_ind <- which(unlist(lapply(
+      compositeNameVec, function(x)
+        strsplit(x, split = "_")[[1]][1])) != in_optK)
+    compositeNameVec[other_ind] <- paste0(compositeNameVec[other_ind], "-\nlike")
+  }
   sigColVector <- in_sigInd_df$colour
   names(sigColVector) <- in_sigInd_df$sig
   return(list(sig_names = sigNameVec,
