@@ -302,7 +302,7 @@ plotSignatureFeatures <- function(nmf.exp, sig.combs = T, col = "blue") {
   # Prepare barplot for signature feature plot
   gg.bar <- ggplot(n.peaks, aes_string(x = "sigCombId", y = "value"))#,
                                      # fill = clusterId))
-  gg.bar <- gg.bar + geom_bar(colour = "black", fill = "col", stat = "identity",
+  gg.bar <- gg.bar + geom_bar(colour = "black", fill = col, stat = "identity",
                               position = position_dodge())
   gg.bar <- gg.bar + xlab("") + ylab("#Features")
   gg.bar <- gg.bar + theme_bw() + theme_cowplot()
