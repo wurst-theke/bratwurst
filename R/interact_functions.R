@@ -1,3 +1,7 @@
+# Copyright © 2015-2017  The Bratwurst package contributors
+# This file is part of the Bratwurst package. The Bratwurst package is licenced
+# under GPL-3
+
 #' Translate from Bratwurst to YAPSA
 #'
 #' Bratwurst (this package, wrapping NMF on GPU functionality) and YAPSA are

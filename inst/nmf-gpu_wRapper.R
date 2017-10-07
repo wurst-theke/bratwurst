@@ -1,3 +1,7 @@
+# Copyright © 2015-2017  The Bratwurst package contributors
+# This file is part of the Bratwurst package. The Bratwurst package is licenced
+# under GPL-3
+
 #==============================================================================#
 # Author: Sebastian Steinhauser - s.steinhauser@gmx.net
 # Date: 12.04.2016
@@ -16,7 +20,7 @@ library(ComplexHeatmap)
 library(rtracklayer)
 library(limma)
 library(reshape2)
-library(cluster)    
+library(cluster)
 library(circlize)
 
 # Source required functions.
@@ -43,7 +47,7 @@ raw.matrix <- fread(matrix.file, sep = '\t')
 
 # Compute mean peak score threshold.
 max.peakScore <- apply(raw.matrix, 1, max)
-peakScore.thres <- 30 #quantile(max.peakScore, 0.25) 
+peakScore.thres <- 30 #quantile(max.peakScore, 0.25)
 
 svg(file.path(result.path, 'hist_maxConPeakScore_thres.svg'))
 hist(max.peakScore, xlim = c(0, 100), breaks = 10^4)
@@ -54,8 +58,8 @@ dev.off()
 i.covKeep <- which(max.peakScore >= peakScore.thres)
 raw.matrix <- raw.matrix[i.covKeep,]
 
-# Load Homer annotated peak file. 
-annoPeaks.file <- file.path('/home/steinhau/NMF-GPU_toolbox/data/mENCODE', prefix, 
+# Load Homer annotated peak file.
+annoPeaks.file <- file.path('/home/steinhau/NMF-GPU_toolbox/data/mENCODE', prefix,
                             'H3K27ac_mergedConPeaks_anno.bed')
 annoPeaks.file <- file.path('/home/steinhau/NMF-GPU_toolbox/data/HSC/H3K27Ac_mergedConPeaks_anno.bed')
 anno.peaks <- fread(sprintf('cat %s | cut -f1,2-4,10', annoPeaks.file))
@@ -66,7 +70,7 @@ anno.peaks <- anno.peaks[i.covKeep,]
 # raw.matrix <- raw.matrix[i.keep,]
 # filtered.annoPeaks <- anno.peaks[i.keep,]
 
-## Normalisation & Standardisation 
+## Normalisation & Standardisation
 #norm.matrix <- quantileTransform(raw.matrix)
 #m.fac <- nrow(norm.matrix)%%10 - 1
 #norm.matrix <- norm.matrix*10^2
@@ -125,10 +129,10 @@ frobError.data <- computeFrobErrorStats(frobError.matrix)
 
 # Generate ranked frob errors plot & save as svg/png.
 gg.rankedFrobError <- plotRankedFrobErrors(frobError.matrix)
-rankedFrobError.svg <- sprintf('%s_k%s_iter%s_rankedFrobError.%s', 
+rankedFrobError.svg <- sprintf('%s_k%s_iter%s_rankedFrobError.%s',
                                samples, k.max, outer.iter, c('svg', 'png'))
 sapply(1:length(rankedFrobError.svg), function(i) {
-  save_plot(plot = gg.rankedFrobError, 
+  save_plot(plot = gg.rankedFrobError,
             filename = file.path(result.path, rankedFrobError.svg[i]))
 })
 
@@ -137,16 +141,16 @@ gg.frobError <- plotFrobError(frobError.matrix)
 
 # Generate Alexandrov Criterion plot
 sil.vec <- computeSilhoutteWidth(dec.matrix)
-gg.silhoutteStats <- plotSilhoutteStas(sil.vec)  
+gg.silhoutteStats <- plotSilhoutteStas(sil.vec)
 
 # Cophenetic correlation coefficient plot
 coph.coeff <- computeCopheneticCoeff(dec.matrix)
 gg.copheneticCoeff <- plotCopheneticCoeff(coph.coeff, keep.x = T)
 
 # Combine all plots for estmation of optimal k
-gg.optKplot <- plot_grid(gg.frobError, 
+gg.optKplot <- plot_grid(gg.frobError,
                          gg.silhoutteStats,
-                         gg.copheneticCoeff, align = 'V', 
+                         gg.copheneticCoeff, align = 'V',
                          rel_heights = c(1, 1, 1.05), ncol = 1)
 
 # Save plots for optimal k estimation.
@@ -167,8 +171,8 @@ H.list <- lapply(H.list, function(x) {
   return(x)
 })
 
-# HMatrixHeat.svg <- sprintf('%s_k%s_iter%s_HmatrixHeatmap.svg', 
-#                            samples, k.max, outer.iter) 
+# HMatrixHeat.svg <- sprintf('%s_k%s_iter%s_HmatrixHeatmap.svg',
+#                            samples, k.max, outer.iter)
 # svg(file.path(result.path, HMatrixHeat.svg), width = 15)
 # plotHeatmap4MatrixList(H.list, trans = T)
 # dev.off()
@@ -209,7 +213,7 @@ names(cell.col) <- sort(unique(meta.data$Cell))
 
 # Prepare heatmap annotation
 heat.anno <- HeatmapAnnotation(df = meta.data[,c(1,3,4)],
-                               col = list(Cell = cell.col, 
+                               col = list(Cell = cell.col,
                                           Timepoint = time.col,
                                           Stage = stage.col))
 
@@ -234,19 +238,19 @@ sapply(c('png', 'svg'), function(suffix) {
 
 # Print H-Matrix for all K's in png & svg.
 sapply(1:length(H.list), function(i) {
-  h.heatmap <- Heatmap(H.list[[i]], col = col.map, 
+  h.heatmap <- Heatmap(H.list[[i]], col = col.map,
                        clustering_distance_columns = 'pearson',
                        heatmap_legend_param = list(color_bar = "continuous"),
                        show_column_names = F, cluster_rows = F,
                        top_annotation = heat.anno)
-  png(file.path(hmatrix.resultPath, 'png', 
+  png(file.path(hmatrix.resultPath, 'png',
                 sprintf('heart_Hmatrix_%sk.png', i+1)))
   draw(h.heatmap)
-  dev.off() 
-  svg(file.path(hmatrix.resultPath, 'svg', 
+  dev.off()
+  svg(file.path(hmatrix.resultPath, 'svg',
                 sprintf('heart_Hmatrix_%sk.svg', i+1)))
   draw(h.heatmap)
-  dev.off() 
+  dev.off()
 })
 #save(H.list, W.list, anno.peaks, regionDB, file = '/home/thymin/NMF-GPU_toolbox/heart_nmf.RData') #file.path(result.path, 'heart_nmf.RData'))
 
@@ -302,7 +306,7 @@ k.row <- apply(W, 1, function(x) {
               silmean = sil.mean,
               explainedVar = k.cluster$betweenss/k.cluster$totss,
               oddsVar = sum(k.cluster$withinss)/k.cluster$betweenss,
-              attribution = k.cluster$cluster)) 
+              attribution = k.cluster$cluster))
 })
 
 # Compute different variance vars. to determine 11111 signature.
@@ -346,7 +350,7 @@ i.regions[[allSig.id]] <- which(k.ids%in%allSig.id)
 #   k.score1 <- k.scores[which(k.ids == ids[i]),]
 #   k.score2 <- k.scores[which(k.ids == ids[n.ids-i]), 2:1]
 #   kscore.df <- rbind(k.score1, k.score2)
-#   k.sil <- c(k.silmean[which(k.ids == ids[i])], 
+#   k.sil <- c(k.silmean[which(k.ids == ids[i])],
 #              k.silmean[which(k.ids == ids[n.ids-i])])
 #   kscore.df <- cbind(kscore.df, k.sil, as.numeric(ids[i]))
 #   return(kscore.df)
@@ -382,7 +386,7 @@ names(w.diffs) <- names(i.regions)
 #                                          linetype = 'dashed', size = 1.25)
 # gg.scatter <- gg.scatter + facet_wrap(~Sig, scales = 'free')
 # gg.scatter <- gg.scatter + xlab('1') + ylab('2')
-# gg.scatter <- gg.scatter + theme_bw() + science_theme 
+# gg.scatter <- gg.scatter + theme_bw() + science_theme
 # gg.scatter + theme(strip.background = element_rect(fill = 'white'))
 
 # Plot W for given signature combination.
@@ -391,8 +395,8 @@ w <- w[region.scores[i.regions[[1]], 'd'] < 0,]
 #w <- w[order(w[,5], decreasing = T),]
 png(file.path(result.path, sprintf('heaeRrt_Wmatrix_%sk.png', 5)))
 Heatmap(w, cluster_rows = F, cluster_columns = F, show_row_names = F,
-        heatmap_legend_param = list(color_bar = "continuous")) 
-dev.off() 
+        heatmap_legend_param = list(color_bar = "continuous"))
+dev.off()
 
 # Extract regions for a given signature combination
 j <- 6# length(i.regions) - 1
@@ -410,17 +414,17 @@ n.peaks <- lapply(names(i.regions), function(region.n) {
   n.peak <- melt(n.peak)
   n.peak$clusterId <- c('1', '2')
   n.peak$sigCombId <- region.n
-  return(n.peak) 
+  return(n.peak)
 })
 n.peaks <- do.call(rbind, n.peaks)
 
-gg.bar <- ggplot(n.peaks, aes(x = sigCombId, y = value, fill = clusterId)) 
-gg.bar <- gg.bar + geom_bar(colour='black', stat='identity', 
+gg.bar <- ggplot(n.peaks, aes(x = sigCombId, y = value, fill = clusterId))
+gg.bar <- gg.bar + geom_bar(colour='black', stat='identity',
                             position=position_dodge())
 gg.bar <- gg.bar + xlab('Signature combinations') + ylab('#Regions')
 gg.bar <- gg.bar + scale_fill_manual(values = c('red', 'blue'),
                                      name = 'Cluster')
-gg.bar <- gg.bar + theme_bw() + science_theme 
+gg.bar <- gg.bar + theme_bw() + science_theme
 gg.bar <- gg.bar + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 save_plot(gg.bar, filename = file.path(result.path, 'clusterCombination_bar.svg'))
 
@@ -445,7 +449,7 @@ computeFisher4Regions <- function(peaks, subregions, universe) {
   x1 <- sum(countOverlaps(subregions, peaks) > 0)
   x2 <- length(subregions) - x1
   x3 <- sum(countOverlaps(universe, peaks) > 0) - x1
-  x4 <- length(universe) - x3 - x2 - x1 
+  x4 <- length(universe) - x3 - x2 - x1
   m <- matrix(c(x1, x3, x2, x4), nrow = 2)
   p <- fisher.test(m)
   return(p$p.value)
@@ -454,10 +458,10 @@ computeFisher4Regions <- function(peaks, subregions, universe) {
 ### NES Functions
 computeRecoveryAUC <- function(ranks, n) {
     ranks <- unique(c(1, sort(ranks[ranks < n]), n))
-    rank.diff <- ranks[-1] - ranks[-length(ranks)] 
+    rank.diff <- ranks[-1] - ranks[-length(ranks)]
     #recov <- 0:c(length(rank.diff)-1)
     recov <- c(0, cumsum(rep(1/n, length(rank.diff)-1)))
-    auc <- sum(recov*rank.diff)/n 
+    auc <- sum(recov*rank.diff)/n
     return(auc)
 }
 
@@ -499,7 +503,7 @@ computePeakStats4Regions <- function(peaks, subregions, universe) {
     ov <- findOverlaps(subregion, peaks)
     promoter.rank <- unique(queryHits(ov))
     nes <- computeNES(promoter.rank, length(subregion))
-    return(nes) 
+    return(nes)
   })
   nes <- do.call(rbind, nes)
   result  <- data.frame('NumberRegions' = unlist(n.regions), 'OV' = unlist(n.ov),
@@ -528,7 +532,7 @@ computeRunningPeakStats4Regions <- function(peaks, subregions, universe) {
 library(BSgenome.Mmusculus.UCSC.mm10)
 library(TxDb.Mmusculus.UCSC.mm10.ensGene)
 #gencode.gff <- '/home/thymin/genomes/mm10/'
-promoter.regions <- promoters(TxDb.Mmusculus.UCSC.mm10.ensGene, 
+promoter.regions <- promoters(TxDb.Mmusculus.UCSC.mm10.ensGene,
                               upstream = 1500, downstream = 500)
 universe <- GRanges(anno.peaks$V2, IRanges(anno.peaks$V3, anno.peaks$V4))
 
@@ -537,7 +541,7 @@ promoter.enrichment <- mclapply(1:length(i.regions), function(i) {
   subregions <- universe[i.regions[[i]],]
   subregions$score <- w.diffs[[i]]
   subregions <- spliteRegionsByScore(subregions)
-  peak.stats <- computeRunningPeakStats4Regions(peaks = promoter.regions, 
+  peak.stats <- computeRunningPeakStats4Regions(peaks = promoter.regions,
                                                 subregions = subregions,
                                                 universe =  universe)
   peak.stats$SignatureComb <- names(i.regions)[i]
@@ -552,12 +556,12 @@ promoter.data <- promoter.enrichment[promoter.enrichment$RankProp == 1,]
 promoter.data$ClusterID <- factor(promoter.data$ClusterID)
 promoter.data[order(promoter.data$NES)]
 
-gg.enrichmentBar <- ggplot(promoter.data, aes(x = SignatureComb, y = FC, fill = ClusterID)) 
-gg.enrichmentBar <- gg.enrichmentBar + geom_bar(colour='black', stat='identity', 
+gg.enrichmentBar <- ggplot(promoter.data, aes(x = SignatureComb, y = FC, fill = ClusterID))
+gg.enrichmentBar <- gg.enrichmentBar + geom_bar(colour='black', stat='identity',
                                                 position=position_dodge())
 gg.enrichmentBar <- gg.enrichmentBar + scale_fill_manual(values = c('red', 'blue'),
                                                          name = 'Cluster')
-gg.enrichmentBar <- gg.enrichmentBar+ theme_bw() + science_theme 
+gg.enrichmentBar <- gg.enrichmentBar+ theme_bw() + science_theme
 gg.enrichmentBar <- gg.enrichmentBar + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 # Compute superenhancer overlap/enrichment.
@@ -570,7 +574,7 @@ superenhancer.enrichment <- mclapply(1:length(i.regions), function(i) {
   subregions <- universe[i.regions[[i]],]
   subregions$score <- w.diffs[[i]]
   subregions <- spliteRegionsByScore(subregions)
-  peak.stats <- computeRunningPeakStats4Regions(peaks = superenhancers, 
+  peak.stats <- computeRunningPeakStats4Regions(peaks = superenhancers,
                                                 subregions = subregions,
                                                 universe =  universe)
   peak.stats$SignatureComb <- names(i.regions)[i]
@@ -581,11 +585,11 @@ superenhancer.enrichment <- do.call(rbind, superenhancer.enrichment)
 
 p <- promoter.enrichment[promoter.enrichment$RankProp == 1,]
 p$anno <-
-plot.matrix <- 
+plot.matrix <-
 #barplot(p$FC)
 signature.comb <- p[,c('ClusterID', 'SignatureComb')]
 sortSignatureCombs <- function(signature.comb) {
-  
+
 }
 
 # Compute enrichment of mouse encode chromHMM model.
@@ -598,10 +602,10 @@ chromStat.enrichment <- mclapply(1:length(i.regions), function(i) {
   subregions <- spliteRegionsByScore(subregions)
   chromStat.peakStats <- lapply(sort(unique(chrom.stats$name)), function(n) {
     chromStat.n <- chrom.stats[chrom.stats$name == n,]
-    peak.stats <- computePeakStats4Regions(peaks = chromStat.n, 
+    peak.stats <- computePeakStats4Regions(peaks = chromStat.n,
                                            subregions = subregions,
                                            universe =  universe)
-    peak.stats$chromStat <- n 
+    peak.stats$chromStat <- n
     return(peak.stats)
   })
   chromStat.peakStats <- do.call(rbind, chromStat.peakStats)
@@ -609,12 +613,12 @@ chromStat.enrichment <- mclapply(1:length(i.regions), function(i) {
 }, mc.cores = 4)
 
 
-##### 
+#####
 # Compute promoter overlap/enrichment.
-chip.peaks <- regionDB$regionGRL 
+chip.peaks <- regionDB$regionGRL
 
 
-  fc <- computeRegionFC4GRlist(peak = chip.peaks, subregion = subregions[[1]], universe = promoter.universe) 
+  fc <- computeRegionFC4GRlist(peak = chip.peaks, subregion = subregions[[1]], universe = promoter.universe)
 
 
 library('LOLA')
@@ -627,7 +631,7 @@ promoter.chipEnrichment <- lapply(1:length(i.regions), function(i) {
   subregions <- subsetByOverlaps(subregions, promoter.regions)
   subregions <- spliteRegionsByScore(subregions)
   lola.results <- lapply(1:length(subregions), function(i.subregion){
-    lola.result <- runLOLA(userSets = subregions[[i.subregion]], 
+    lola.result <- runLOLA(userSets = subregions[[i.subregion]],
                            userUniverse = promoter.universe,
                            regionDB, cores = 5)
     lola.result$adjPLog <- -log10(p.adjust(p = 10^(-lola.result$pValueLog),
@@ -641,7 +645,7 @@ promoter.chipEnrichment <- lapply(1:length(i.regions), function(i) {
 })
 
 library('rGREAT')
-test <- submitGreatJob(gr = subregions[[1]], species = 'mm10', bg = promoter.universe, request_interval = 30)  
+test <- submitGreatJob(gr = subregions[[1]], species = 'mm10', bg = promoter.universe, request_interval = 30)
 availableCategories(test)
 tb <- getEnrichmentTables(test, category = "Gene Expression")
 ==============================================================================#
@@ -650,12 +654,12 @@ tb <- getEnrichmentTables(test, category = "Gene Expression")
 #                   with FISHER's EXACT TEST (--> Peak OV)                     #
 #==============================================================================#
 
-dbPath <- '/home/steinhau/NMF-GPU_toolbox/LOLACore/mm10/' 
-dbPath <- '/home/thymin/Projects//NMF-GPU_toolbox/LOLACore/mm10/' 
+dbPath <- '/home/steinhau/NMF-GPU_toolbox/LOLACore/mm10/'
+dbPath <- '/home/thymin/Projects//NMF-GPU_toolbox/LOLACore/mm10/'
 regionDB <- loadRegionDB(dbPath, useCache = T)
 
 # Define the universe
-universe <- GRanges(anno.peaks$V2, 
+universe <- GRanges(anno.peaks$V2,
                     IRanges(anno.peaks$V3, anno.peaks$V4))
 
 lolaEnrichment.results <- lapply(names(i.regions), function(n.region) {
@@ -669,11 +673,11 @@ lolaEnrichment.results <- lapply(names(i.regions), function(n.region) {
     return(lola.result)
   })
   return(lola.results)
-}) 
+})
 
 
 ### Prepare feature matrix for plotting.
-x <- lapply(lolaEnrichment.results, function(lolaEnrichment.result) { 
+x <- lapply(lolaEnrichment.results, function(lolaEnrichment.result) {
   lapply(lolaEnrichment.result, function(l) {
     l$fdr <- p.adjust(10^-l$pValueLog, method = 'fdr')
     return(l)
@@ -743,9 +747,9 @@ names(anno.colmap) <- colnames(sig.comb)
 i.order <- apply(sig.comb, 1, function(c) sum(as.logical(c)))
 i.order <- lapply(unique(sort(i.order)), function(n) {
   j <- which(i.order == n)
-  j <- j[order(as.logical(sig.comb[j,5]), as.logical(sig.comb[j,4]), 
+  j <- j[order(as.logical(sig.comb[j,5]), as.logical(sig.comb[j,4]),
                as.logical(sig.comb[j,3]), as.logical(sig.comb[j,2]),
-               decreasing = T)] 
+               decreasing = T)]
   return(j)
 })
 i.order <- unlist(i.order)
@@ -755,7 +759,7 @@ sigComb.anno <- HeatmapAnnotation(as.data.frame(sig.comb)[i.order,],
                                   col = anno.colmap, show_legend = F,
                                   gp = gpar(col = 'black', lty = 1, lwd = 1))
 
-Heatmap(enrichment.matrix[,i.order], cluster_rows = T, cluster_columns = F, 
+Heatmap(enrichment.matrix[,i.order], cluster_rows = T, cluster_columns = F,
         show_row_names = F, show_column_names = F,
         heatmap_legend_param = list(color_bar = "continuous"),
         bottom_annotation = sigComb.anno)
@@ -782,7 +786,7 @@ j.regions  <- lapply(i.regions, function(i) {
 })
 j.regions <- i.regions
 
-n.ranks <- 500 
+n.ranks <- 500
 featureNes.list <- lapply(1:length(i.regions), function(i) {
   print(names(i.regions)[i])
   # Get subregions and compute ranking score.
@@ -793,7 +797,7 @@ featureNes.list <- lapply(1:length(i.regions), function(i) {
   subregions.gr$score <- w.diffs[[i]][i.keep]
   feature.nes <- lapply(c(T, F), function(b) {
     print(b)
-    if(b & sum(subregions.gr$score > 0) < n.ranks) { return(NA) }  
+    if(b & sum(subregions.gr$score > 0) < n.ranks) { return(NA) }
     if(!b & sum(subregions.gr$score < 0) < n.ranks) { return(NA) }
     # Compute feature overlap.
     sorted.regions <- subregions.gr[order(subregions.gr$score, decreasing = b)]
@@ -833,7 +837,7 @@ features.dt <- lapply(names(featureNes.list), function(n) {
     features$clusterId <- id
     features$combClusterId <- n
     features$nes <- featureNes.list[[n]][[id]][feature.dict]
-    return(features) 
+    return(features)
   })
   features.dt <- do.call(rbind, features.dt)
   return(features.dt)
@@ -861,7 +865,7 @@ i.stem <- grep(rowAnno.df$cellType, pattern = 'Embryonic', ignore.case = T)
 rowAnno.df$cellType[i.stem] <- 'ESC'
 rowAnno.df$anno <- paste(rowAnno.df$cellType,  rowAnno.df$antibody)
 i.rep <- lapply(unique(rowAnno.df$anno), function(a) {
-  j <- which(rowAnno.df$anno%in%a) 
+  j <- which(rowAnno.df$anno%in%a)
   names(j) <- 1:length(j)
   return(j)
 })
@@ -887,9 +891,9 @@ names(anno.colmap) <- colnames(sig.comb)
 i.order <- apply(sig.comb, 1, function(c) sum(as.logical(c)))
 i.order <- lapply(unique(sort(i.order)), function(n) {
   j <- which(i.order == n)
-  j <- j[order(as.logical(sig.comb[j,5]), as.logical(sig.comb[j,4]), 
+  j <- j[order(as.logical(sig.comb[j,5]), as.logical(sig.comb[j,4]),
                as.logical(sig.comb[j,3]), as.logical(sig.comb[j,2]),
-               decreasing = T)] 
+               decreasing = T)]
   return(j)
 })
 i.order <- unlist(i.order)
@@ -902,7 +906,7 @@ sigComb.anno <- HeatmapAnnotation(as.data.frame(sig.comb)[i.order,],
 enrichment.matrix[is.na(enrichment.matrix)] <- 0
 # enrichment.matrix[enrichment.matrix > 5] <- 5
 
-h <- Heatmap(enrichment.matrix[,i.order], cluster_rows = T, cluster_columns = T, 
+h <- Heatmap(enrichment.matrix[,i.order], cluster_rows = T, cluster_columns = T,
              show_row_names = T, show_column_names = F,
              heatmap_legend_param = list(color_bar = "continuous", legend_direction = "horizontal",
                                          legend_width = unit(5, "cm"), title_position = "lefttop"),
@@ -911,10 +915,10 @@ h <- Heatmap(enrichment.matrix[,i.order], cluster_rows = T, cluster_columns = T,
 
 png(file.path(result.path, 'heart_enhancer_lolaPeaksNES_1000.png'))
 draw(h, heatmap_legend_side = "bottom")
-dev.off() 
+dev.off()
 svg(file.path(result.path, 'heart_enhancer_lolaPeaksNES_1000.svg'), width = 12, height = 10)
 draw(h, heatmap_legend_side = "bottom")
-dev.off() 
+dev.off()
 
 
 ################################################################################
@@ -967,7 +971,7 @@ binom.pvalues <- lapply(1:length(lola.regions), function(i.region) {
   pvalues <- lapply(i.specific, function(i.spec){
     n.regions <- length(i.spec)
     ov <- findOverlaps(regions, universe[i.spec,])
-    anno.hits <- length(unique(subjectHits(ov))) 
+    anno.hits <- length(unique(subjectHits(ov)))
     pvalue <- binom.test(x = anno.hits, n = n.regions, p = anno.size)
     return(pvalue$p.value)
   })

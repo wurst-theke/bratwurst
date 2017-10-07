@@ -1,3 +1,7 @@
+# Copyright © 2015-2017  The Bratwurst package contributors
+# This file is part of the Bratwurst package. The Bratwurst package is licenced
+# under GPL-3
+
 #' Title
 #'
 #' @param peaks

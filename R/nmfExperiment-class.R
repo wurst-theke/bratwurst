@@ -1,14 +1,18 @@
+# Copyright © 2015-2017  The Bratwurst package contributors
+# This file is part of the Bratwurst package. The Bratwurst package is licenced
+# under GPL-3
+
 #' NMF Experiment Class
 #'
-#' @slot HMatrixList list. 
-#' @slot HMatrix list. 
-#' @slot WMatrixList list. 
-#' @slot WMatrix list. 
-#' @slot FrobError DataFrame. 
-#' @slot OptKStats DataFrame. 
+#' @slot HMatrixList list.
+#' @slot HMatrix list.
+#' @slot WMatrixList list.
+#' @slot WMatrix list.
+#' @slot FrobError DataFrame.
+#' @slot OptKStats DataFrame.
 #'
 #' @return
-#' 
+#'
 #' @import SummarizedExperiment
 #' @export
 #'
@@ -33,7 +37,7 @@ setGeneric("FrobError", function(x, ...) standardGeneric("FrobError"))
 
 #' Frobenius Error getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -47,7 +51,7 @@ setGeneric("setFrobError", function(nmfExperiment, FrobError)
 
 #' Frobenius Error setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -65,7 +69,7 @@ setGeneric("HMatrixList", function(x, k = NULL, ...)
 
 #' H-Matrix List getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -85,7 +89,7 @@ setGeneric("setHMatrixList", function(nmfExperiment, HMatrixList)
 
 #' H-Matrix List setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -104,7 +108,7 @@ setGeneric("WMatrixList", function(x, k = NULL, ...)
 
 #' W-Matrix list getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -124,7 +128,7 @@ setGeneric("setWMatrixList", function(nmfExperiment, WMatrixList)
 
 #' W-Matrix setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -136,14 +140,14 @@ setMethod("setWMatrixList", "nmfExperiment",
             return(nmfExperiment)
           })
 
-#### H-Matrix (H-Matrix with smallest frobError) 
+#### H-Matrix (H-Matrix with smallest frobError)
 # Getter
 setGeneric("HMatrix", function(x, k = NULL, ...)
   standardGeneric("HMatrix"))
 
 #' H-Matrix getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -163,13 +167,13 @@ setMethod("HMatrix", "nmfExperiment", function(x, k = NULL, ...) {
   return(H)
 })
 
-#### W-Matrix (W-Matrix with smallest frobError) 
+#### W-Matrix (W-Matrix with smallest frobError)
 # Getter
 setGeneric("WMatrix", function(x, k = NULL, ...) standardGeneric("WMatrix"))
 
 #' W-Matrix getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -195,7 +199,7 @@ setGeneric("OptKStats", function(x, ...) standardGeneric("OptKStats"))
 
 #' Optimal K Statistics getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -209,7 +213,7 @@ setGeneric("setOptKStats", function(nmfExperiment, OptKStats)
 
 #' Optimal K Statistics setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -221,13 +225,13 @@ setMethod("setOptKStats", "nmfExperiment",
             return(nmfExperiment)
           })
 
-#### Optimal K 
+#### Optimal K
 # Getter
 setGeneric("OptK", function(x, ...) standardGeneric("OptK"))
 
-#' Optimal K 
+#' Optimal K
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -240,7 +244,7 @@ setGeneric("setOptK", function(nmfExperiment, OptK) standardGeneric("setOptK"))
 
 #' Optimal K setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -257,7 +261,7 @@ setGeneric("FeatureStats", function(x, ...) standardGeneric("FeatureStats"))
 
 #' Feature Statistics getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -271,7 +275,7 @@ setGeneric("setFeatureStats", function(nmfExperiment, FeatureStats)
 
 #' Feature Statistics setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -295,7 +299,7 @@ setGeneric("SignatureSpecificFeatures",
 
 #' Signature specfific features getter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export
@@ -312,7 +316,7 @@ setGeneric("setSignatureSpecificFeatures",
 
 #' Feature Statistics setter
 #'
-#' @param nmfExperiment 
+#' @param nmfExperiment
 #'
 #' @return
 #' @export

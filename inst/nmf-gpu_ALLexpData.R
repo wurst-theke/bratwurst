@@ -1,3 +1,7 @@
+# Copyright © 2015-2017  The Bratwurst package contributors
+# This file is part of the Bratwurst package. The Bratwurst package is licenced
+# under GPL-3
+
 #==============================================================================#
 # Author: Sebastian Steinhauser - s.steinhauser@gmx.net
 # Date: 20.07.2016
@@ -20,7 +24,7 @@ colAnno.file <- list.files(data.path, 'sample.*anno.*txt', full.names = T)
 
 # Read files to summarizedExperiment
 nmf.exp <- nmfExperimentFromFile(matrix.file = matrix.file,
-                                 rowAnno.file = rowAnno.file, 
+                                 rowAnno.file = rowAnno.file,
                                  colData.file = colAnno.file)
 
 ### RUN NMF GPU
@@ -71,10 +75,10 @@ sapply(1:length(optK.svg), function(i) {
 # Generate ranked frob errors plot & save as svg/png.
 gg.rankedFrobError <- plotRankedFrobErrors(nmf.exp)
 
-rankedFrobError.svg <- sprintf('%s_k%s_iter%s_rankedFrobError.%s', 
+rankedFrobError.svg <- sprintf('%s_k%s_iter%s_rankedFrobError.%s',
                                samples, k.max, outer.iter, c('svg', 'png'))
 sapply(1:length(rankedFrobError.svg), function(i) {
-  save_plot(plot = gg.rankedFrobError, 
+  save_plot(plot = gg.rankedFrobError,
             filename = file.path(result.path, rankedFrobError.svg[i]))
 })
 

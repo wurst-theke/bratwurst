@@ -1,3 +1,7 @@
+# Copyright © 2015-2017  The Bratwurst package contributors
+# This file is part of the Bratwurst package. The Bratwurst package is licenced
+# under GPL-3
+
 import numpy as np
 import cudamat as cm
 import argparse
@@ -369,7 +373,7 @@ if __name__ == "__main__":
 
     cm.cuda_set_device(args.gpuID)
     cm.cublas_init()
-    
+
     if args.sets:
         np.random.seed(seed=args.seedv)
 
