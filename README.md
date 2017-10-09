@@ -3,10 +3,11 @@ Daniel Huebschmann & Sebastian Steinhauser
 20.07.2016  
 
 `Bratwurst` is a software package providing functions for preprocessing,
-wrapper for non-negative matrix factorization and postprocessing in `R`. This 
-repo hosts the code of the Bratwurst software package. A detailed description 
+wrappers for non-negative matrix factorization and postprocessing in `R`. This 
+repo hosts the code of the Bratwurst software package.  
+A detailed description 
 of the software and an application to cells of the human hematopoietic system 
-are available as a preprint: .
+are available as a preprint: https://doi.org/10.1101/199547.  
 Intermediate results for this analysis are available on zenodo:
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1003504.svg)](https://doi.org/10.5281/zenodo.1003504)
   
@@ -140,11 +141,11 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-09 09:33:33 CEST"
+## [1] "2017-10-09 09:42:14 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-09 09:33:48 CEST"
+## [1] "2017-10-09 09:42:29 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-09 09:34:07 CEST"
+## [1] "2017-10-09 09:42:49 CEST"
 ## Factorization rank:  4
 ```
 
