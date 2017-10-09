@@ -263,11 +263,11 @@ Frobenius norm may be used.
 leukemia.nmf.exp <- computeFrobErrorStats(leukemia.nmf.exp)
 ```
 
-### Generate Alexandrov Criterion plot
+### Evaluate silhouette values
 
-In [@Alex2013] an approach is described in which a modified silhouette 
-criterion is used to estimate the stability across iteration steps for one 
-fixed factorization rank `k`.
+In 2013, Alexandrov et al. published an NMF analysis on mutational signatures.
+They used an approach which a modified silhouette criterion is used to estimate 
+the stability across iteration steps for one fixed factorization rank `k`.
 
 ```{r}
 leukemia.nmf.exp <- computeSilhoutteWidth(leukemia.nmf.exp)
@@ -330,21 +330,8 @@ heat.anno <- HeatmapAnnotation(df = colData(leukemia.nmf.exp)[, c(2:3)],
                                col = anno_col)
 ```
 
-And now display the matrices `H` with meta data annotation:
-
-```{r}
-# sapply(1:length(HMatrix(leukemia.nmf.exp)), function(i) {
-#   current_k <- as.numeric(names(HMatrix(leukemia.nmf.exp))[i])
-#   h.heatmap <- Heatmap(HMatrix(leukemia.nmf.exp, k = current_k),
-#                        clustering_distance_columns = "pearson",
-#                        heatmap_legend_param = list(color_bar = "continuous"),
-#                        show_column_names = F, cluster_rows = F,
-#                        top_annotation = heat.anno)
-#   draw(h.heatmap)
-# })
-```
-
-Bratwurst provides a plotting function to display the matrices `H` with meta data annotation:
+And now display the matrices `H` with meta data annotation. Bratwurst provides 
+a plotting function to display the matrices `H` with meta data annotation:
 
 ```{r}
 # Plot Heatmaps for H over all k

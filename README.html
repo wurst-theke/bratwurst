@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul></li>
 <li><a href="#determine-the-optimal-factorization-rank"><span class="toc-section-number">3.2</span> Determine the optimal factorization rank</a><ul>
 <li><a href="#get-frobenius-error."><span class="toc-section-number">3.2.1</span> Get Frobenius error.</a></li>
-<li><a href="#generate-alexandrov-criterion-plot"><span class="toc-section-number">3.2.2</span> Generate Alexandrov Criterion plot</a></li>
+<li><a href="#evaluate-silhouette-values"><span class="toc-section-number">3.2.2</span> Evaluate silhouette values</a></li>
 <li><a href="#cophenetic-correlation-coefficient-plot"><span class="toc-section-number">3.2.3</span> Cophenetic correlation coefficient plot</a></li>
 <li><a href="#compute-amari-type-distance"><span class="toc-section-number">3.2.4</span> Compute amari type distance</a></li>
 <li><a href="#generate-plots-to-estimate-optimal-k"><span class="toc-section-number">3.2.5</span> Generate plots to estimate optimal k</a></li>
@@ -147,11 +147,11 @@ leukemia.nmf.exp&lt;- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
                                    inner.iter = inner.iter,
                                    tmp.path = &quot;/tmp/tmp_leukemia&quot;,
                                    cpu = TRUE)</code></pre>
-<pre><code>## [1] &quot;2017-10-09 10:52:03 CEST&quot;
+<pre><code>## [1] &quot;2017-10-09 11:01:12 CEST&quot;
 ## Factorization rank:  2 
-## [1] &quot;2017-10-09 10:52:18 CEST&quot;
+## [1] &quot;2017-10-09 11:01:27 CEST&quot;
 ## Factorization rank:  3 
-## [1] &quot;2017-10-09 10:52:38 CEST&quot;
+## [1] &quot;2017-10-09 11:01:47 CEST&quot;
 ## Factorization rank:  4</code></pre>
 <p>Depending on the choice of parameters (dimensions of the input matrix, number of iterations), this step may take some time. Note that the algorithm updates the user about the progress in the iterations.</p>
 <p>Several getter functions are available to access the data in the generated <code>nmf.exp</code> object:</p>
@@ -250,9 +250,9 @@ class(W.list)</code></pre>
 <p>The most important information about the many iterated decompositions is the norm of the residual. In NMF this is often called the Frobenius error, as the Frobenius norm may be used.</p>
 <pre class="r"><code>leukemia.nmf.exp &lt;- computeFrobErrorStats(leukemia.nmf.exp)</code></pre>
 </div>
-<div id="generate-alexandrov-criterion-plot" class="section level3">
-<h3><span class="header-section-number">3.2.2</span> Generate Alexandrov Criterion plot</h3>
-<p>In <span class="citation">[@Alex2013]</span> an approach is described in which a modified silhouette criterion is used to estimate the stability across iteration steps for one fixed factorization rank <code>k</code>.</p>
+<div id="evaluate-silhouette-values" class="section level3">
+<h3><span class="header-section-number">3.2.2</span> Evaluate silhouette values</h3>
+<p>In 2013, Alexandrov et al. published an NMF analysis on mutational signatures. They used an approach which a modified silhouette criterion is used to estimate the stability across iteration steps for one fixed factorization rank <code>k</code>.</p>
 <pre class="r"><code>leukemia.nmf.exp &lt;- computeSilhoutteWidth(leukemia.nmf.exp)</code></pre>
 </div>
 <div id="cophenetic-correlation-coefficient-plot" class="section level3">
@@ -347,17 +347,7 @@ anno_col &lt;- list(V2 = entity.colVector,
                  V3 = subtype.colVector)
 heat.anno &lt;- HeatmapAnnotation(df = colData(leukemia.nmf.exp)[, c(2:3)],
                                col = anno_col)</code></pre>
-<p>And now display the matrices <code>H</code> with meta data annotation:</p>
-<pre class="r"><code># sapply(1:length(HMatrix(leukemia.nmf.exp)), function(i) {
-#   current_k &lt;- as.numeric(names(HMatrix(leukemia.nmf.exp))[i])
-#   h.heatmap &lt;- Heatmap(HMatrix(leukemia.nmf.exp, k = current_k),
-#                        clustering_distance_columns = &quot;pearson&quot;,
-#                        heatmap_legend_param = list(color_bar = &quot;continuous&quot;),
-#                        show_column_names = F, cluster_rows = F,
-#                        top_annotation = heat.anno)
-#   draw(h.heatmap)
-# })</code></pre>
-<p>Bratwurst provides a plotting function to display the matrices <code>H</code> with meta data annotation:</p>
+<p>And now display the matrices <code>H</code> with meta data annotation. Bratwurst provides a plotting function to display the matrices <code>H</code> with meta data annotation:</p>
 <pre class="r"><code># Plot Heatmaps for H over all k
 lapply(seq(2, k.max), function(k) {
   plotHMatrix(leukemia.nmf.exp, k)

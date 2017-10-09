@@ -141,11 +141,11 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-09 10:52:03 CEST"
+## [1] "2017-10-09 11:01:12 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-09 10:52:18 CEST"
+## [1] "2017-10-09 11:01:27 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-09 10:52:38 CEST"
+## [1] "2017-10-09 11:01:47 CEST"
 ## Factorization rank:  4
 ```
 
@@ -415,11 +415,11 @@ Frobenius norm may be used.
 leukemia.nmf.exp <- computeFrobErrorStats(leukemia.nmf.exp)
 ```
 
-### Generate Alexandrov Criterion plot
+### Evaluate silhouette values
 
-In [@Alex2013] an approach is described in which a modified silhouette 
-criterion is used to estimate the stability across iteration steps for one 
-fixed factorization rank `k`.
+In 2013, Alexandrov et al. published an NMF analysis on mutational signatures.
+They used an approach which a modified silhouette criterion is used to estimate 
+the stability across iteration steps for one fixed factorization rank `k`.
 
 
 ```r
@@ -507,22 +507,8 @@ heat.anno <- HeatmapAnnotation(df = colData(leukemia.nmf.exp)[, c(2:3)],
                                col = anno_col)
 ```
 
-And now display the matrices `H` with meta data annotation:
-
-
-```r
-# sapply(1:length(HMatrix(leukemia.nmf.exp)), function(i) {
-#   current_k <- as.numeric(names(HMatrix(leukemia.nmf.exp))[i])
-#   h.heatmap <- Heatmap(HMatrix(leukemia.nmf.exp, k = current_k),
-#                        clustering_distance_columns = "pearson",
-#                        heatmap_legend_param = list(color_bar = "continuous"),
-#                        show_column_names = F, cluster_rows = F,
-#                        top_annotation = heat.anno)
-#   draw(h.heatmap)
-# })
-```
-
-Bratwurst provides a plotting function to display the matrices `H` with meta data annotation:
+And now display the matrices `H` with meta data annotation. Bratwurst provides 
+a plotting function to display the matrices `H` with meta data annotation:
 
 
 ```r
@@ -536,21 +522,21 @@ lapply(seq(2, k.max), function(k) {
 ## [[1]]
 ```
 
-![](README_files/figure-html/unnamed-chunk-22-1.png)
+![](README_files/figure-html/unnamed-chunk-21-1.png)
 
 ```
 ## 
 ## [[2]]
 ```
 
-![](README_files/figure-html/unnamed-chunk-22-2.png)
+![](README_files/figure-html/unnamed-chunk-21-2.png)
 
 ```
 ## 
 ## [[3]]
 ```
 
-![](README_files/figure-html/unnamed-chunk-22-3.png)
+![](README_files/figure-html/unnamed-chunk-21-3.png)
 
 ## Feature selection 
 ### Row K-means to determine signature specific features
@@ -714,7 +700,7 @@ plotSignatureFeatures(leukemia.nmf.exp)
 ## instead
 ```
 
-![](README_files/figure-html/unnamed-chunk-24-1.png)
+![](README_files/figure-html/unnamed-chunk-23-1.png)
 
 ```r
 # Plot only signature combinations
@@ -736,7 +722,7 @@ plotSignatureFeatures(leukemia.nmf.exp, sig.combs = F)
 ## instead
 ```
 
-![](README_files/figure-html/unnamed-chunk-24-2.png)
+![](README_files/figure-html/unnamed-chunk-23-2.png)
 
 ```r
 # Try to display selected features on W matrix
@@ -750,7 +736,7 @@ c <- getColorMap(m)
 Heatmap(m, col = c, cluster_rows = F, cluster_columns = F)
 ```
 
-![](README_files/figure-html/unnamed-chunk-24-3.png)
+![](README_files/figure-html/unnamed-chunk-23-3.png)
 
 
 # References
