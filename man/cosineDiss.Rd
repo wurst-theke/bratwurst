@@ -2,16 +2,14 @@
 % Please edit documentation in R/nmf_functions.R
 \name{cosineDiss}
 \alias{cosineDiss}
-\title{Title}
+\title{Create distance matrix with cosine similarity}
 \usage{
 cosineDiss(in.matrix, in.dimension = 2)
 }
 \arguments{
-\item{in.matrix}{}
-
 \item{in.dimension}{}
 }
 \description{
-Title
+Create distance matrix with cosine similarity
 }
 

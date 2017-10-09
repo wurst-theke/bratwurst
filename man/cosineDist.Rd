@@ -2,16 +2,14 @@
 % Please edit documentation in R/nmf_functions.R
 \name{cosineDist}
 \alias{cosineDist}
-\title{Title}
+\title{Cosine distance}
 \usage{
 cosineDist(a, b)
 }
 \arguments{
-\item{a}{}
-
 \item{b}{}
 }
 \description{
-Title
+Cosine distance
 }
 

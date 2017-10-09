@@ -4,14 +4,14 @@
 \alias{writeTmpMatrix}
 \title{Title}
 \usage{
-writeTmpMatrix(matrix, tmp.path = "/tmp/nmf_tmp", sep = " ")
+writeTmpMatrix(matrix, tmp.path = "/tmp/nmf_tmp", sep = " ",
+  binary = FALSE)
 }
 \arguments{
-\item{matrix}{}
-
-\item{tmp.path}{}
-
 \item{sep}{}
+}
+\value{
+
 }
 \description{
 Title

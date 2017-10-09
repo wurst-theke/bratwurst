@@ -2,14 +2,14 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computeFrobErrorStats}
 \alias{computeFrobErrorStats}
-\title{Title}
+\title{Compute basic statistics for Frobenius Errors}
 \usage{
-computeFrobErrorStats(frob.errorMatrix)
+computeFrobErrorStats(nmf.exp)
 }
 \arguments{
-\item{frob.errorMatrix}{}
+\item{nmf.exp}{}
 }
 \description{
-Title
+Compute basic statistics for Frobenius Errors
 }
 

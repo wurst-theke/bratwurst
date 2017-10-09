@@ -7,8 +7,6 @@
 computeMeanDiff4SignatureCombs(W, i.regions)
 }
 \arguments{
-\item{W}{}
-
 \item{i.regions}{}
 }
 \description{

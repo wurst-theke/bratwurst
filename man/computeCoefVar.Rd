@@ -2,14 +2,17 @@
 % Please edit documentation in R/nmf_functions.R
 \name{computeCoefVar}
 \alias{computeCoefVar}
-\title{Title}
+\title{Compute the coeficient of variation per row in a matrix.}
 \usage{
-computeCoefVar(W)
+computeCoefVar(matrix)
 }
 \arguments{
-\item{W}{}
+\item{matrix}{}
+}
+\value{
+
 }
 \description{
-Title
+Compute the coeficient of variation per row in a matrix.
 }
 

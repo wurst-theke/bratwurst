@@ -9,6 +9,9 @@ igvCoord2Grange(coords)
 \arguments{
 \item{coords}{}
 }
+\value{
+
+}
 \description{
 Title
 }

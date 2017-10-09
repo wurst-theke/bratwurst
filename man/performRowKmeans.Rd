@@ -2,14 +2,17 @@
 % Please edit documentation in R/nmf_functions.R
 \name{performRowKmeans}
 \alias{performRowKmeans}
-\title{Title}
+\title{Perform Kmeans on rows of a matrix to classify them into column (singature) combinations}
 \usage{
-performRowKmeans(W)
+performRowKmeans(matrix)
 }
 \arguments{
-\item{W}{}
+\item{matrix}{}
+}
+\value{
+
 }
 \description{
-Title
+Perform Kmeans on rows of a matrix to classify them into column (singature) combinations
 }
 

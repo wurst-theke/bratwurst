@@ -7,10 +7,6 @@
 computeRunningPeakStats4Regions(peaks, subregions, universe)
 }
 \arguments{
-\item{peaks}{}
-
-\item{subregions}{}
-
 \item{universe}{}
 }
 \description{

@@ -2,16 +2,14 @@
 % Please edit documentation in R/nmf_functions.R
 \name{getSignatureNames}
 \alias{getSignatureNames}
-\title{Title}
+\title{Compute unsupervised signature names from colData and H-Matrix for given K}
 \usage{
-getSignatureNames(H, meta.data)
+getSignatureNames(nmf.exp, k.opt)
 }
 \arguments{
-\item{H}{}
-
-\item{meta.data}{}
+\item{k.opt}{}
 }
 \description{
-Title
+Compute unsupervised signature names from colData and H-Matrix for given K
 }
 

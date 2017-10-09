@@ -7,8 +7,6 @@
 computeRecoveryAUC(ranks, n)
 }
 \arguments{
-\item{ranks}{}
-
 \item{n}{}
 }
 \description{

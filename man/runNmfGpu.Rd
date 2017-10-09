@@ -4,19 +4,16 @@
 \alias{runNmfGpu}
 \title{Title}
 \usage{
-runNmfGpu(tmpMatrix.path, k.max = 2, outer.iter = 10, inner.iter = 10^4,
-  out.dir = NULL)
+runNmfGpu(nmf.exp, k.min = 2, k.max = 2, outer.iter = 10,
+  inner.iter = 10^4, conver.test.niter = 10,
+  conver.test.stop.threshold = 40, out.dir = NULL,
+  tmp.path = "/tmp/nmf_tmp")
 }
 \arguments{
-\item{tmpMatrix.path}{}
-
-\item{k.max}{}
-
-\item{outer.iter}{}
-
-\item{inner.iter}{}
-
 \item{out.dir}{}
+}
+\value{
+
 }
 \description{
 Title
