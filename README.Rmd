@@ -1,7 +1,7 @@
 ---
 title: "Bratwurst"
 author: "Daniel Huebschmann & Sebastian Steinhauser"
-date: "20.07.2016"
+date: "20.07.2016, major update 09.10.2017"
 output:
   BiocStyle::html_document:
     toc: yes
@@ -15,10 +15,11 @@ A detailed description
 of the software and an application to cells of the human hematopoietic system 
 are available as a preprint: https://doi.org/10.1101/199547.  
 Intermediate results for the analysis on hematopoietic cells are available on
-zenodo: https://doi.org/10.5281/zenodo.800049.
+zenodo: https://doi.org/10.5281/zenodo.800049.  
+In this README document, we present major parts of the vignette of the package. 
+First some packages have to be loaded.
   
 ```{r load_style, warning=FALSE, message=FALSE, results="hide"}
-library(BiocStyle)
 library(knitr)
 library(ComplexHeatmap)
 ```
@@ -90,14 +91,20 @@ The package `Bratwurst` provides functions to compute all
 
 # Example: leukemia data
 
-Preparations
+In this README, as in the vignette for the package, we use a dataset containing 
+Affymetrix Hgu6800 microarray expression data of B-ALL, T-ALL and AML samples. 
+This dataset had also been used by Brunet et al. (PNAS, 2004) and Gaujoux et 
+al. (BMC Bioinformatics, 2010). In Brunet et al., this dataset is called the 
+__Golub__ dataset.
+Preparations: load the necessary software packages:
 
 ```{r, warning=FALSE, message=FALSE}
 library(Bratwurst)
 library(NMF)
 ```
 
-Load the example data
+Load the example data (the __Golub__ dataset is stored in the R package 
+`Bratwurst`)
 
 ```{r, eval = T}
 data(leukemia)

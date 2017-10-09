@@ -1,6 +1,6 @@
 # Bratwurst
 Daniel Huebschmann & Sebastian Steinhauser  
-20.07.2016  
+20.07.2016, major update 09.10.2017  
 
 `Bratwurst` is a software package providing functions for preprocessing,
 wrappers for non-negative matrix factorization and postprocessing in `R`. This 
@@ -9,11 +9,12 @@ A detailed description
 of the software and an application to cells of the human hematopoietic system 
 are available as a preprint: https://doi.org/10.1101/199547.  
 Intermediate results for the analysis on hematopoietic cells are available on
-zenodo: https://doi.org/10.5281/zenodo.800049.
+zenodo: https://doi.org/10.5281/zenodo.800049.  
+In this README document, we present major parts of the vignette of the package. 
+First some packages have to be loaded.
   
 
 ```r
-library(BiocStyle)
 library(knitr)
 library(ComplexHeatmap)
 ```
@@ -85,7 +86,12 @@ The package `Bratwurst` provides functions to compute all
 
 # Example: leukemia data
 
-Preparations
+In this README, as in the vignette for the package, we use a dataset containing 
+Affymetrix Hgu6800 microarray expression data of B-ALL, T-ALL and AML samples. 
+This dataset had also been used by Brunet et al. (PNAS, 2004) and Gaujoux et 
+al. (BMC Bioinformatics, 2010). In Brunet et al., this dataset is called the 
+__Golub__ dataset.
+Preparations: load the necessary software packages:
 
 
 ```r
@@ -93,7 +99,8 @@ library(Bratwurst)
 library(NMF)
 ```
 
-Load the example data
+Load the example data (the __Golub__ dataset is stored in the R package 
+`Bratwurst`)
 
 
 ```r
@@ -141,11 +148,11 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-09 11:01:12 CEST"
+## [1] "2017-10-09 12:49:03 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-09 11:01:27 CEST"
+## [1] "2017-10-09 12:49:19 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-09 11:01:47 CEST"
+## [1] "2017-10-09 12:49:38 CEST"
 ## Factorization rank:  4
 ```
 
@@ -445,14 +452,22 @@ can be accessed with `OptKStats`:
 
 
 ```r
-kable(OptKStats(leukemia.nmf.exp))
+OptKStats(leukemia.nmf.exp)
 ```
 
-       k         min        mean          sd          cv   sumSilWidth   meanSilWidth   copheneticCoeff   meanAmariDist
----  ---  ----------  ----------  ----------  ----------  ------------  -------------  ----------------  --------------
-2      2   0.5583456   0.5583465   0.0000008   0.0000014      20.00000      0.9999999         0.9999999        0.00e+00
-3      3   0.5139639   0.5139683   0.0000026   0.0000050      29.99996      0.9999988         0.9616090        4.00e-07
-4      4   0.4641748   0.4645046   0.0001483   0.0003192      39.99228      0.9998071         0.9866591        8.59e-05
+```
+## DataFrame with 3 rows and 9 columns
+##           k       min      mean           sd           cv sumSilWidth
+##   <numeric> <numeric> <numeric>    <numeric>    <numeric>   <numeric>
+## 2         2 0.5583456 0.5583465 7.751192e-07 1.388241e-06    20.00000
+## 3         3 0.5139639 0.5139683 2.577000e-06 5.013928e-06    29.99996
+## 4         4 0.4641748 0.4645046 1.482698e-04 3.191999e-04    39.99228
+##   meanSilWidth copheneticCoeff meanAmariDist
+##      <numeric>       <numeric>     <numeric>
+## 2    0.9999999       0.9999999  2.709082e-08
+## 3    0.9999988       0.9616090  3.969754e-07
+## 4    0.9998071       0.9866591  8.592894e-05
+```
 
 These quality measures can be displayed together:
 
