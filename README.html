@@ -8,7 +8,7 @@
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="pandoc" />
 
-<meta name="author" content="Sebastian Steinhauser &amp; Daniel Huebschmann" />
+<meta name="author" content="Daniel Huebschmann &amp; Sebastian Steinhauser" />
 
 
 <title>Bratwurst</title>
@@ -49,7 +49,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
 <div id="header">
 <h1 class="title">Bratwurst</h1>
-<h4 class="author"><em>Sebastian Steinhauser &amp; Daniel Huebschmann</em></h4>
+<h4 class="author"><em>Daniel Huebschmann &amp; Sebastian Steinhauser</em></h4>
 <h4 class="date"><em>20.07.2016</em></h4>
 </div>
 
@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <div id="TOC">
 <ul>
 <li><a href="#introduction"><span class="toc-section-number">1</span> Introduction</a></li>
-<li><a href="#Bratwurst_package"><span class="toc-section-number">2</span> The Bratwurst package</a></li>
+<li><a href="#the-bratwurst-package"><span class="toc-section-number">2</span> The Bratwurst package</a></li>
 <li><a href="#example-leukemia-data"><span class="toc-section-number">3</span> Example: leukemia data</a><ul>
 <li><a href="#nmf-analysis"><span class="toc-section-number">3.1</span> NMF analysis</a><ul>
 <li><a href="#call-wrapper-function"><span class="toc-section-number">3.1.1</span> Call wrapper function</a></li>
@@ -81,27 +81,28 @@ document.addEventListener("DOMContentLoaded", function() {
 <li><a href="#feature-visualization"><span class="toc-section-number">3.4.2</span> Feature visualization</a></li>
 </ul></li>
 </ul></li>
-<li><a href="#references">References</a></li>
+<li><a href="#references"><span class="toc-section-number">4</span> References</a></li>
 </ul>
 </div>
 
+<p><code>Bratwurst</code> is a software package providing functions for preprocessing, wrapper for non-negative matrix factorization and postprocessing in <code>R</code>. This repo hosts the code of the Bratwurst software package. A detailed description of the software and an application to cells of the human hematopoietic system are available as a preprint: . Intermediate results for this analysis are available on zenodo: <a href="https://doi.org/10.5281/zenodo.1003504"><img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciCiAgICAgd2lkdGg9IjE4NiIgaGVpZ2h0PSIyMCI+CiAgICAgICAgPGxpbmVhckdyYWRpZW50IGlkPSJiIiB4Mj0iMCIgeTI9IjEwMCUiPgogICAgICAgICAgICA8c3RvcCBvZmZzZXQ9IjAiIHN0b3AtY29sb3I9IiNiYmIiIHN0b3Atb3BhY2l0eT0iLjEiLz4KICAgICAgICAgICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLW9wYWNpdHk9Ii4xIi8+CiAgICAgICAgPC9saW5lYXJHcmFkaWVudD4KICAgICAgICA8bWFzayBpZD0iYSIgd2lkdGg9IjE4NiIgaGVpZ2h0PSIyMCI+CiAgICAgICAgICAgIDxyZWN0IHdpZHRoPSIxODYiIGhlaWdodD0iMjAiIHJ4PSIzIgogICAgICAgICAgICBmaWxsPSIjZmZmIi8+CiAgICAgICAgPC9tYXNrPgogICAgICAgIDxnIG1hc2s9InVybCgjYSkiPgogICAgICAgICAgICA8cGF0aCBmaWxsPSIjNTU1IiBkPSJNMCAwaDMxdjIwSDB6IiAvPgogICAgICAgICAgICA8cGF0aCBmaWxsPSIjMDA3ZWM2IgogICAgICAgICAgICBkPSJNMzEgMGgxNTV2MjBIMzF6IgogICAgICAgICAgICAvPgogICAgICAgICAgICA8cGF0aCBmaWxsPSJ1cmwoI2IpIiBkPSJNMCAwaDE4NnYyMEgweiIgLz4KICAgICAgICA8L2c+CiAgICAgICAgPGcgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkRlamFWdSBTYW5zLAogICAgICAgIFZlcmRhbmEsR2VuZXZhLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEiPgogICAgICAgICAgICA8dGV4dCB4PSIxNiIgeT0iMTUiIGZpbGw9IiMwMTAxMDEiCiAgICAgICAgICAgIGZpbGwtb3BhY2l0eT0iLjMiPgogICAgICAgICAgICAgICAgRE9JCiAgICAgICAgICAgIDwvdGV4dD4KICAgICAgICAgICAgPHRleHQgeD0iMTYiIHk9IjE0Ij4KICAgICAgICAgICAgICAgIERPSQogICAgICAgICAgICA8L3RleHQ+CiAgICAgICAgICAgIDx0ZXh0IHg9IjEwOCIKICAgICAgICAgICAgeT0iMTUiIGZpbGw9IiMwMTAxMDEiIGZpbGwtb3BhY2l0eT0iLjMiPgogICAgICAgICAgICAgICAgMTAuNTI4MS96ZW5vZG8uMTAwMzUwNAogICAgICAgICAgICA8L3RleHQ+CiAgICAgICAgICAgIDx0ZXh0IHg9IjEwOCIgeT0iMTQiPgogICAgICAgICAgICAgICAgMTAuNTI4MS96ZW5vZG8uMTAwMzUwNAogICAgICAgICAgICA8L3RleHQ+CiAgICAgICAgPC9nPgogICAgPC9zdmc+" alt="DOI" /></a></p>
 <pre class="r"><code>library(BiocStyle)
 library(knitr)
 library(ComplexHeatmap)</code></pre>
 <div id="introduction" class="section level1">
 <h1><span class="header-section-number">1</span> Introduction</h1>
-<p><strong>NMF</strong> (<strong>nonnegative matrix factorization</strong>) is a matrix decomposition method. A description of the algorithm and it’s implementation can be found e.g. in <span class="citation">(Lee and Seung 1999)</span>. In 2003, Brunet et al. applied NMF to gene expression data <span class="citation">(Brunet et al. 2003)</span>. In 2010, <em><a href="http://cran.fhcrc.org/web/packages/NMF/index.html">NMF</a></em>, an R package implementing several NMF solvers was published <span class="citation">(Gaujoux and Seoighe 2010)</span>. NMF basically solves the problem as illustrated in the following figure (Image taken from <a href="https://en.wikipedia.org/wiki/Non-negative_matrix_factorization" class="uri">https://en.wikipedia.org/wiki/Non-negative_matrix_factorization</a>):</p>
+<p><strong>NMF</strong> (<strong>nonnegative matrix factorization</strong>) is a matrix decomposition method. It was originally described by Lee &amp; Seung in 1999. In 2003, Brunet et al. applied NMF to gene expression data. In 2010, <em><a href="http://cran.fhcrc.org/web/packages/NMF/index.html">NMF</a></em>, an R package implementing several NMF solvers was published by Gaujoux et al. NMF basically solves the problem as illustrated in the following figure (Image taken from <a href="https://en.wikipedia.org/wiki/Non-negative_matrix_factorization" class="uri">https://en.wikipedia.org/wiki/Non-negative_matrix_factorization</a>):</p>
 <p><img src="data:image/png;base64,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" alt="NMF" /></p>
-<p>Here, <span class="math inline">\(V\)</span> is an input matrix with dimensions <span class="math inline">\(n \times m\)</span>. It is decomposed into two matrices <span class="math inline">\(W\)</span> of dimension <span class="math inline">\(n \times l\)</span> and <span class="math inline">\(H\)</span> of dimension <span class="math inline">\(l \times m\)</span>, which when multiplied approximate the original matrix <span class="math inline">\(V\)</span>. <span class="math inline">\(l\)</span> is a free parameter in NMF, it is called the factorization rank. If we call the columns of <span class="math inline">\(W\)</span> , then <span class="math inline">\(l\)</span> corresponds to the number of signatures. The decomposition thus leads to a reduction in complexity if <span class="math inline">\(l &lt; n\)</span>, i.e. if the number of signatures is smaller than the number of features, as indicated in the above figure.</p>
-<p>In 2015, Mejia-Roa et al. introduced an implementation of an NMF-solver in CUDA, which lead to significant reduction of computation times by making use of massive parallelisation on GPUs <span class="citation">(Mejia-Roa et al. 2015)</span>. Other implementations of NMF-solvers on GPUs exist.</p>
+<p>Here, V is an input matrix with dimensions n x m. It is decomposed into two matrices W of dimension n x l and H of dimension l x m, which when multiplied approximate the original matrix V. l is a free parameter in NMF, it is called the factorization rank. If we call the columns of W signatures, then l corresponds to the number of signatures. The decomposition thus leads to a reduction in complexity if l &lt; n, i.e. if the number of signatures is smaller than the number of features, as indicated in the above figure.</p>
+<p>In 2015, Mejia-Roa et al. introduced an implementation of an NMF-solver in CUDA, which lead to significant reduction of computation times by making use of massive parallelisation on GPUs. Other implementations of NMF-solvers on GPUs exist.</p>
 <p>It is the pupose of the package <code>Bratwurst</code> described here to provide wrapper functions in R to these NMF-solvers in CUDA. Massive parallelisation not only leads to faster algorithms, but also makes the benefits of NMF accessible to much bigger matrices. Furthermore, functions for preprocessing, estimation of the optimal factorization rank and post-hoc feature selection are provided.</p>
 </div>
-<div id="Bratwurst_package" class="section level1">
+<div id="the-bratwurst-package" class="section level1">
 <h1><span class="header-section-number">2</span> The Bratwurst package</h1>
-<p>The main feature of the package <code>Bratwurst</code> is an S4 object called <code>nmf.exp</code>. It is derived from <code>SummarizedExperiment</code>, has containers for a data matrix, column annotation data and row annotation data and inherits <code>SummarizedExperiment</code>’s accessor functions <code>colData</code> and <code>rowData</code>. The matrix to be stored in this data structure is the matrix <span class="math inline">\(V\)</span> as described above, corresponding to the input matrix for the NMF-solver. <code>nmf.exp</code> furthermore has containers for the matrices <span class="math inline">\(W\)</span> and <span class="math inline">\(H\)</span> which are results of the decomposition. As NMF algorithms have to be run iteratively, an instance of the class <code>nmf.exp</code> can store large lists of matrices, corresponding to the results of different iteration steps. Accessor functions to all different containers are provided.</p>
-<p>A crucial step in data analysis with NMF is the determination of the optimal factorization rank, i.e. the number of columns of the matrix <span class="math inline">\(W\)</span> or equivalently the number of rows of the matrix <span class="math inline">\(H\)</span>. No consensus method for an automatic evaluation of the optimal factorization rank has been found to date. Instead, the decomposition is usually performed iteratively over a range of possible factorization ranks and different quality measures are computed for every tested factorization ranks. Many quality measures have been proposed:</p>
+<p>The main feature of the package <code>Bratwurst</code> is an S4 object called <code>nmf.exp</code>. It is derived from <code>SummarizedExperiment</code>, has containers for a data matrix, column annotation data and row annotation data and inherits <code>SummarizedExperiment</code>’s accessor functions <code>colData</code> and <code>rowData</code>. The matrix to be stored in this data structure is the matrix V as described above, corresponding to the input matrix for the NMF-solver. <code>nmf.exp</code> furthermore has containers for the matrices W and H which are results of the decomposition. As NMF algorithms have to be run iteratively, an instance of the class <code>nmf.exp</code> can store large lists of matrices, corresponding to the results of different iteration steps. Accessor functions to all different containers are provided.</p>
+<p>A crucial step in data analysis with NMF is the determination of the optimal factorization rank, i.e. the number of columns of the matrix W or equivalently the number of rows of the matrix H. No consensus method for an automatic evaluation of the optimal factorization rank has been found to date. Instead, the decomposition is usually performed iteratively over a range of possible factorization ranks and different quality measures are computed for every tested factorization ranks. Many quality measures have been proposed:</p>
 <ul>
-<li>The <code>Frobenius reconstruction error</code>, i.e. the Frobenius norm of the residuals of the decomposition: <span class="math inline">\(||W \cdot H - V||_{F}\)</span></li>
+<li>The <code>Frobenius reconstruction error</code>, i.e. the Frobenius norm of the residuals of the decomposition: ||W x H - V||</li>
 <li><p>Criteria to assess the stability of the decomposition:</p></li>
 <li>The <code>cophenetic correlation coefficient</code></li>
 <li>An <code>Amari type distance</code></li>
@@ -138,35 +139,18 @@ save(leukemia.nmf.exp, file = file.path(data.path, &quot;leukemia.rda&quot;))</c
 outer.iter &lt;- 10
 inner.iter &lt;- 10^4
 
-# leukemia.nmf.exp&lt;- runNmfGpu(nmf.exp = leukemia.nmf.exp,
-#                              k.max = k.max,
-#                              outer.iter = outer.iter,
-#                              inner.iter = inner.iter,
-#                              tmp.path = &quot;/tmp/tmp_leukemia&quot;)
 leukemia.nmf.exp&lt;- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
                                    k.max = k.max,
                                    outer.iter = outer.iter,
                                    inner.iter = inner.iter,
                                    tmp.path = &quot;/tmp/tmp_leukemia&quot;,
                                    cpu = TRUE)</code></pre>
-<pre><code>## [1] &quot;2017-10-07 21:38:51 CEST&quot;
+<pre><code>## [1] &quot;2017-10-09 09:33:33 CEST&quot;
 ## Factorization rank:  2 
-## [1] &quot;2017-10-07 21:39:06 CEST&quot;
+## [1] &quot;2017-10-09 09:33:48 CEST&quot;
 ## Factorization rank:  3 
-## [1] &quot;2017-10-07 21:39:25 CEST&quot;
+## [1] &quot;2017-10-09 09:34:07 CEST&quot;
 ## Factorization rank:  4</code></pre>
-<pre class="r"><code># leukemia.nmf.exp&lt;- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
-#                                    k.max = k.max,
-#                                    outer.iter = outer.iter,
-#                                    inner.iter = inner.iter,
-#                                    tmp.path = &quot;/tmp/tmp_leukemia&quot;,
-#                                    cpu = TRUE)
-# leukemia.nmf.exp&lt;- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
-#                                    k.max = k.max,
-#                                    outer.iter = outer.iter,
-#                                    inner.iter = inner.iter,
-#                                    tmp.path = &quot;/tmp/tmp_leukemia&quot;,
-#                                    binary.file.transfer = TRUE)</code></pre>
 <p>Depending on the choice of parameters (dimensions of the input matrix, number of iterations), this step may take some time. Note that the algorithm updates the user about the progress in the iterations.</p>
 <p>Several getter functions are available to access the data in the updated <code>nmf.exp</code> object:</p>
 </div>
@@ -491,7 +475,7 @@ class(W.list)</code></pre>
 </div>
 <div id="generate-alexandrov-criterion-plot" class="section level3">
 <h3><span class="header-section-number">3.2.2</span> Generate Alexandrov Criterion plot</h3>
-<p>In <span class="citation">(Alexandrov et al. 2013)</span> an approach is described in which a modified silhouette criterion is used to estimate the stability across iteration steps for one fixed factorization rank <code>k</code>.</p>
+<p>In <span class="citation">[@Alex2013]</span> an approach is described in which a modified silhouette criterion is used to estimate the stability across iteration steps for one fixed factorization rank <code>k</code>.</p>
 <pre class="r"><code>leukemia.nmf.exp &lt;- computeSilhoutteWidth(leukemia.nmf.exp)</code></pre>
 </div>
 <div id="cophenetic-correlation-coefficient-plot" class="section level3">
@@ -750,23 +734,8 @@ Heatmap(m, col = c, cluster_rows = F, cluster_columns = F)</code></pre>
 </div>
 </div>
 </div>
-<div id="references" class="section level1 references unnumbered">
-<h1>References</h1>
-<div id="ref-Alex2013">
-<p>Alexandrov, LB, S Nik-Zainal, DC Wedge, SA Aparicio, S Behjati, AV Biankin, GR Bignell, et al. 2013. “Signatures of Mutational Processes in Cancer.” <em>Nature</em>. Nature Publishing Group.</p>
-</div>
-<div id="ref-Brunet_article2003">
-<p>Brunet, Jean-Philippe, Pablo Tamayo, Todd R. Golub, and Jill P. Mesirov. 2003. “Metagenes and Molecular Pattern Discovery Using Matrix Factorization.” <em>PNAS</em>. PNAS.</p>
-</div>
-<div id="ref-Gaujoux_article2010">
-<p>Gaujoux, Renaud, and Cathal Seoighe. 2010. “A Flexible R Package for Nonnegative Matrix Factorization.” <em>BMC Bioinformatics</em>. BMC.</p>
-</div>
-<div id="ref-Lee_article1999">
-<p>Lee, Daniel D., and Sebastian Seung. 1999. “Learning the Parts of Objects by Non-Negative Matrix Factorization.” <em>Nature</em>. Nature Publishing Group.</p>
-</div>
-<div id="ref-Mejia_article2015">
-<p>Mejia-Roa, Edgardo, Daniel Tabas-Madrid, Javier Setoain, Carlos Garcia, Francisco Tirado, and Alberto Pascual-Montano. 2015. “NMF-MGPU: Non-Negative Matrix Factorization on Multi-GPU Systems.” <em>BMC Bioinformatics</em>. BMC.</p>
-</div>
+<div id="references" class="section level1">
+<h1><span class="header-section-number">4</span> References</h1>
 </div>
 
 

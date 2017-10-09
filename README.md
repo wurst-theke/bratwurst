@@ -1,7 +1,14 @@
 # Bratwurst
-Sebastian Steinhauser & Daniel Huebschmann  
+Daniel Huebschmann & Sebastian Steinhauser  
 20.07.2016  
 
+`Bratwurst` is a software package providing functions for preprocessing,
+wrapper for non-negative matrix factorization and postprocessing in `R`. This 
+repo hosts the code of the Bratwurst software package. A detailed description 
+of the software and an application to cells of the human hematopoietic system 
+are available as a preprint: .
+Intermediate results for this analysis are available on zenodo:
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1003504.svg)](https://doi.org/10.5281/zenodo.1003504)
   
 
 ```r
@@ -13,28 +20,27 @@ library(ComplexHeatmap)
 # Introduction {#introduction}
 
 **NMF** (**nonnegative matrix factorization**) is a matrix decomposition 
-method. A description of the algorithm and it's implementation can be found 
-e.g. in [@Lee_article1999]. In 2003, Brunet et al. applied NMF to gene 
-expression data [@Brunet_article2003]. In 2010, *[NMF](http://cran.fhcrc.org/web/packages/NMF/index.html)*, an R 
-package implementing several NMF solvers was published [@Gaujoux_article2010].
+method. It was originally described by Lee & Seung in 1999. In 2003, Brunet et 
+al. applied NMF to gene expression data. In 2010, *[NMF](http://cran.fhcrc.org/web/packages/NMF/index.html)*, an R 
+package implementing several NMF solvers was published by Gaujoux et al.
 NMF basically solves the problem as illustrated in the following figure
 (Image taken from 
 <https://en.wikipedia.org/wiki/Non-negative_matrix_factorization>):
 
 ![NMF](vignettes/NMF.png)
 
-Here, $V$ is an input matrix with dimensions $n \times m$. It is decomposed
-into two matrices $W$ of dimension $n \times l$ and $H$ of dimension
-$l \times m$, which when multiplied approximate the original matrix $V$. $l$ is
+Here, V is an input matrix with dimensions n x m. It is decomposed
+into two matrices W of dimension n x l and H of dimension
+l x m, which when multiplied approximate the original matrix V. l is
 a free parameter in NMF, it is called the factorization rank. If we call the 
-columns of $W$ \emph{signatures}, then $l$ corresponds to the number of 
+columns of W signatures, then l corresponds to the number of 
 signatures. The decomposition thus leads to a reduction in complexity if 
-$l < n$, i.e. if the number of signatures is smaller than the number of 
+l < n, i.e. if the number of signatures is smaller than the number of 
 features, as indicated in the above figure.
 
 In 2015, Mejia-Roa et al. introduced an implementation of an NMF-solver in 
 CUDA, which lead to significant reduction of computation times by making use of
-massive parallelisation on GPUs [@Mejia_article2015]. Other implementations of
+massive parallelisation on GPUs. Other implementations of
 NMF-solvers on GPUs exist.
 
 It is the pupose of the package `Bratwurst` described here to provide wrapper 
@@ -43,30 +49,30 @@ leads to faster algorithms, but also makes the benefits of NMF accessible to
 much bigger matrices. Furthermore, functions for preprocessing, estimation of
 the optimal factorization rank and post-hoc feature selection are provided.
 
-# The Bratwurst package {#Bratwurst_package}
+# The Bratwurst package 
 
 The main feature of the package `Bratwurst` is an S4 object called `nmf.exp`. 
 It is derived from `SummarizedExperiment`, has containers for a data matrix, 
 column annotation data and row annotation data and inherits 
 `SummarizedExperiment`'s accessor functions `colData` and `rowData`. The matrix
-to be stored in this data structure is the matrix $V$ as described above, 
+to be stored in this data structure is the matrix V as described above, 
 corresponding to the input matrix for the NMF-solver. `nmf.exp` furthermore has
-containers for the matrices $W$ and $H$ which are results of the decomposition.
+containers for the matrices W and H which are results of the decomposition.
 As NMF algorithms have to be run iteratively, an instance of the class 
 `nmf.exp` can store large lists of matrices, corresponding to the results of 
 different iteration steps. Accessor functions to all different containers are 
 provided.
 
 A crucial step in data analysis with NMF is the determination of the optimal 
-factorization rank, i.e. the number of columns of the matrix $W$ or 
-equivalently the number of rows of the matrix $H$. No consensus method for an 
+factorization rank, i.e. the number of columns of the matrix W or 
+equivalently the number of rows of the matrix H. No consensus method for an 
 automatic evaluation of the optimal factorization rank has been found to date. 
 Instead, the decomposition is usually performed iteratively over a range of 
 possible factorization ranks and different quality measures are computed for 
 every tested factorization ranks. Many quality measures have been proposed:
 
 * The `Frobenius reconstruction error`, i.e. the Frobenius norm of the 
-residuals of the decomposition: $||W \cdot H - V||_{F}$
+residuals of the decomposition: ||W x H - V||
 * Criteria to assess the stability of the decomposition:
 
   + The `cophenetic correlation coefficient`
@@ -125,11 +131,6 @@ k.max <- 4
 outer.iter <- 10
 inner.iter <- 10^4
 
-# leukemia.nmf.exp<- runNmfGpu(nmf.exp = leukemia.nmf.exp,
-#                              k.max = k.max,
-#                              outer.iter = outer.iter,
-#                              inner.iter = inner.iter,
-#                              tmp.path = "/tmp/tmp_leukemia")
 leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
                                    k.max = k.max,
                                    outer.iter = outer.iter,
@@ -139,27 +140,12 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-07 21:38:51 CEST"
+## [1] "2017-10-09 09:33:33 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-07 21:39:06 CEST"
+## [1] "2017-10-09 09:33:48 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-07 21:39:25 CEST"
+## [1] "2017-10-09 09:34:07 CEST"
 ## Factorization rank:  4
-```
-
-```r
-# leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
-#                                    k.max = k.max,
-#                                    outer.iter = outer.iter,
-#                                    inner.iter = inner.iter,
-#                                    tmp.path = "/tmp/tmp_leukemia",
-#                                    cpu = TRUE)
-# leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
-#                                    k.max = k.max,
-#                                    outer.iter = outer.iter,
-#                                    inner.iter = inner.iter,
-#                                    tmp.path = "/tmp/tmp_leukemia",
-#                                    binary.file.transfer = TRUE)
 ```
 
 Depending on the choice of parameters (dimensions of the input matrix, number 
