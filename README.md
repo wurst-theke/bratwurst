@@ -8,8 +8,8 @@ repo hosts the code of the Bratwurst software package.
 A detailed description 
 of the software and an application to cells of the human hematopoietic system 
 are available as a preprint: https://doi.org/10.1101/199547.  
-Intermediate results for this analysis are available on zenodo:
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1003504.svg)](https://doi.org/10.5281/zenodo.1003504)
+Intermediate results for the analysis on hematopoietic cells are available on
+zenodo: https://doi.org/10.5281/zenodo.800049.
   
 
 ```r
@@ -18,7 +18,7 @@ library(knitr)
 library(ComplexHeatmap)
 ```
 
-# Introduction {#introduction}
+# Introduction
 
 **NMF** (**nonnegative matrix factorization**) is a matrix decomposition 
 method. It was originally described by Lee & Seung in 1999. In 2003, Brunet et 
@@ -30,13 +30,13 @@ NMF basically solves the problem as illustrated in the following figure
 
 ![NMF](vignettes/NMF.png)
 
-Here, V is an input matrix with dimensions n x m. It is decomposed
-into two matrices W of dimension n x l and H of dimension
-l x m, which when multiplied approximate the original matrix V. l is
+Here, `V` is an input matrix with dimensions `n x m`. It is decomposed
+into two matrices `W` of dimension `n x l` and `H` of dimension
+`l x m`, which when multiplied approximate the original matrix `V`. `l` is
 a free parameter in NMF, it is called the factorization rank. If we call the 
-columns of W signatures, then l corresponds to the number of 
+columns of `W` signatures, then `l` corresponds to the number of 
 signatures. The decomposition thus leads to a reduction in complexity if 
-l < n, i.e. if the number of signatures is smaller than the number of 
+`l < n`, i.e. if the number of signatures is smaller than the number of 
 features, as indicated in the above figure.
 
 In 2015, Mejia-Roa et al. introduced an implementation of an NMF-solver in 
@@ -141,11 +141,11 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-09 09:42:14 CEST"
+## [1] "2017-10-09 10:40:52 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-09 09:42:29 CEST"
+## [1] "2017-10-09 10:41:07 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-09 09:42:49 CEST"
+## [1] "2017-10-09 10:41:26 CEST"
 ## Factorization rank:  4
 ```
 
@@ -153,7 +153,7 @@ Depending on the choice of parameters (dimensions of the input matrix, number
 of iterations), this step may take some time. Note that the algorithm updates 
 the user about the progress in the iterations.
 
-Several getter functions are available to access the data in the updated 
+Several getter functions are available to access the data in the generated 
 `nmf.exp` object:
 
 ### `HMatrixList` 
@@ -198,7 +198,7 @@ dim(tmp.object[[1]])
 ```
 
 ```r
-kable(tmp.object[[1]][, c(1:5)])
+kable(as.data.frame(tmp.object[[1]][, c(1:5)]))
 ```
 
     X19769      X23953      X28373       X9335       X9692
