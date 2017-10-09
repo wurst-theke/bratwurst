@@ -161,7 +161,6 @@ class(tmp.object)
 length(tmp.object)
 class(tmp.object[[1]])
 dim(tmp.object[[1]])
-kable(as.data.frame(tmp.object[[1]][, c(1:5)]))
 ```
 
 If no value for `k` is supplied, the function returns a list of lists, one for
@@ -186,7 +185,6 @@ chosen factorization rank.
 tmp.object <- HMatrix(leukemia.nmf.exp, k = 2)
 class(tmp.object)
 dim(tmp.object)
-kable(tmp.object[, c(1:5)])
 ```
 
 If no value for `k` is supplied, the function returns a list of optimal 
@@ -196,7 +194,6 @@ matrices, one for every iterated factorization rank.
 H.list <- HMatrix(leukemia.nmf.exp)
 class(H.list)
 length(H.list)
-kable(H.list[[1]][, c(1:5)])
 ```
 
 ### `WMatrixList` 
@@ -212,7 +209,6 @@ class(tmp.object)
 length(tmp.object)
 class(tmp.object[[1]])
 dim(tmp.object[[1]])
-kable(as.data.frame(tmp.object[[1]][c(1:5), ]))
 ```
 
 If no value for `k` is supplied, the function returns a list of lists, one for
@@ -229,7 +225,6 @@ chosen factorization rank.
 tmp.object <- WMatrix(leukemia.nmf.exp, k = 2)
 class(tmp.object)
 dim(tmp.object)
-kable(as.data.frame(tmp.object[c(1:5), ]))
 ```
 
 If no value for `k` is supplied, the function returns a list of optimal 
@@ -239,7 +234,6 @@ matrices, one for every iterated factorization rank.
 W.list <- WMatrix(leukemia.nmf.exp)
 class(W.list)
 length(W.list)
-kable(as.data.frame(W.list[[1]][c(1:5), ]))
 ```
 
 
@@ -249,7 +243,7 @@ Returns a data frame with as many columns as there are iterated factorization
 ranks and as many rows as there are iterations per factorization rank.
 
 ```{r}
-kable(FrobError(leukemia.nmf.exp))
+FrobError(leukemia.nmf.exp)
 ```
 
 ## Determine the optimal factorization rank

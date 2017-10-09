@@ -141,11 +141,11 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-09 10:40:52 CEST"
+## [1] "2017-10-09 10:52:03 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-09 10:41:07 CEST"
+## [1] "2017-10-09 10:52:18 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-09 10:41:26 CEST"
+## [1] "2017-10-09 10:52:38 CEST"
 ## Factorization rank:  4
 ```
 
@@ -196,15 +196,6 @@ dim(tmp.object[[1]])
 ```
 ## [1]  2 38
 ```
-
-```r
-kable(as.data.frame(tmp.object[[1]][, c(1:5)]))
-```
-
-    X19769      X23953      X28373       X9335       X9692
-----------  ----------  ----------  ----------  ----------
- 0.0012217   0.0006957   0.0017320   0.0009911   0.0023145
- 0.0101117   0.0092702   0.0100455   0.0090467   0.0079003
 
 If no value for `k` is supplied, the function returns a list of lists, one for
 every iterated factorization rank.
@@ -268,15 +259,6 @@ dim(tmp.object)
 ## [1]  2 38
 ```
 
-```r
-kable(tmp.object[, c(1:5)])
-```
-
-    X19769      X23953      X28373       X9335       X9692
-----------  ----------  ----------  ----------  ----------
- 0.0011684   0.0006634   0.0016600   0.0009470   0.0022194
- 0.0103269   0.0094676   0.0102585   0.0092395   0.0080685
-
 If no value for `k` is supplied, the function returns a list of optimal 
 matrices, one for every iterated factorization rank.
 
@@ -297,15 +279,6 @@ length(H.list)
 ```
 ## [1] 3
 ```
-
-```r
-kable(H.list[[1]][, c(1:5)])
-```
-
-    X19769      X23953      X28373       X9335       X9692
-----------  ----------  ----------  ----------  ----------
- 0.0011684   0.0006634   0.0016600   0.0009470   0.0022194
- 0.0103269   0.0094676   0.0102585   0.0092395   0.0080685
 
 ### `WMatrixList` 
 
@@ -348,18 +321,6 @@ dim(tmp.object[[1]])
 ## [1] 4951    2
 ```
 
-```r
-kable(as.data.frame(tmp.object[[1]][c(1:5), ]))
-```
-
-        V1          V2
-----------  ----------
- 17466.253   24780.637
-  1325.366    5232.173
- 21145.189   27374.652
-  2609.515    3935.618
-  3984.408    5466.515
-
 If no value for `k` is supplied, the function returns a list of lists, one for
 every iterated factorization rank.
 
@@ -388,18 +349,6 @@ dim(tmp.object)
 ## [1] 4951    2
 ```
 
-```r
-kable(as.data.frame(tmp.object[c(1:5), ]))
-```
-
-        V1          V2
-----------  ----------
- 18178.421   24274.787
-  1379.526    5124.079
- 22009.461   26815.369
-  2716.068    3855.091
-  4147.238    5354.742
-
 If no value for `k` is supplied, the function returns a list of optimal 
 matrices, one for every iterated factorization rank.
 
@@ -421,18 +370,6 @@ length(W.list)
 ## [1] 3
 ```
 
-```r
-kable(as.data.frame(W.list[[1]][c(1:5), ]))
-```
-
-        V1          V2
-----------  ----------
- 18178.421   24274.787
-  1379.526    5124.079
- 22009.461   26815.369
-  2716.068    3855.091
-  4147.238    5354.742
-
 
 ### `FrobError`
 
@@ -441,21 +378,24 @@ ranks and as many rows as there are iterations per factorization rank.
 
 
 ```r
-kable(FrobError(leukemia.nmf.exp))
+FrobError(leukemia.nmf.exp)
 ```
 
-         2           3           4
-----------  ----------  ----------
- 0.5583464   0.5139642   0.4641748
- 0.5583473   0.5139693   0.4644978
- 0.5583461   0.5139688   0.4646465
- 0.5583477   0.5139639   0.4644630
- 0.5583457   0.5139707   0.4645478
- 0.5583460   0.5139682   0.4644090
- 0.5583472   0.5139721   0.4644547
- 0.5583457   0.5139675   0.4646729
- 0.5583472   0.5139689   0.4645166
- 0.5583456   0.5139694   0.4646634
+```
+## DataFrame with 10 rows and 3 columns
+##            2         3         4
+##    <numeric> <numeric> <numeric>
+## 1  0.5583464 0.5139642 0.4641748
+## 2  0.5583473 0.5139693 0.4644978
+## 3  0.5583461 0.5139688 0.4646465
+## 4  0.5583477 0.5139639 0.4644630
+## 5  0.5583457 0.5139707 0.4645478
+## 6  0.5583460 0.5139682 0.4644090
+## 7  0.5583472 0.5139721 0.4644547
+## 8  0.5583457 0.5139675 0.4646729
+## 9  0.5583472 0.5139689 0.4645166
+## 10 0.5583456 0.5139694 0.4646634
+```
 
 ## Determine the optimal factorization rank
 
