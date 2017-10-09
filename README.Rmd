@@ -289,7 +289,7 @@ After having executed all these functions, the values of the computed measures
 can be accessed with `OptKStats`:
 
 ```{r}
-kable(OptKStats(leukemia.nmf.exp))
+OptKStats(leukemia.nmf.exp)
 ```
 
 These quality measures can be displayed together:
