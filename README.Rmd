@@ -394,5 +394,3 @@ c <- getColorMap(m)
 Heatmap(m, col = c, cluster_rows = F, cluster_columns = F)
 ```
 
-
-# References

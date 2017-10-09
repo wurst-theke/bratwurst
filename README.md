@@ -148,11 +148,11 @@ leukemia.nmf.exp<- runNmfGpuPyCuda(nmf.exp = leukemia.nmf.exp,
 ```
 
 ```
-## [1] "2017-10-09 12:49:03 CEST"
+## [1] "2017-10-09 14:37:55 CEST"
 ## Factorization rank:  2 
-## [1] "2017-10-09 12:49:19 CEST"
+## [1] "2017-10-09 14:38:11 CEST"
 ## Factorization rank:  3 
-## [1] "2017-10-09 12:49:38 CEST"
+## [1] "2017-10-09 14:38:30 CEST"
 ## Factorization rank:  4
 ```
 
@@ -753,5 +753,3 @@ Heatmap(m, col = c, cluster_rows = F, cluster_columns = F)
 
 ![](README_files/figure-html/unnamed-chunk-23-3.png)
 
-
-# References
